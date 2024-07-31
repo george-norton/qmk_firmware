@@ -534,7 +534,7 @@ void send_plover_hid(report_plover_hid_t *report) {
 
 void send_digitizer_stylus(report_digitizer_stylus_t *report) {
 #ifdef DIGITIZER_ENABLE
-    send_report(DIGITIZER_IN_EPNUM, report, sizeof(report_digitizer_stylus_t));
+    send_report(USB_ENDPOINT_IN_DIGITIZER, report, sizeof(report_digitizer_stylus_t));
 #endif
 }
 
