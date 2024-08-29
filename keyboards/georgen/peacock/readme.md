@@ -10,13 +10,18 @@ Peacock is a QMK powered standalone 7" trackpad. The board features a macropad w
 
 Make example for this keyboard (after setting up your build environment):
 
-    make georgen/peacock:default
+    make georgen/peacock/v1_00:default
 
 Flashing example for this keyboard:
 
     Put the board into bootloader mode by holding the boot button while connecting the USB cable, bolding boot and shorting the reset jumper or holding SW1 and plugging in the USB cable, then drag and drop the uf2 file onto the drive that mounts.
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
+
+## Version 1.01+ boards
+
+If you have a PCB that is version 1.01 or higher use the `v1_01` firmware and keymap (the map supports using the encoders).
+This branch works on MacOS much more smoothly than the multitouch development branches.
 
 ## Bootloader
 
