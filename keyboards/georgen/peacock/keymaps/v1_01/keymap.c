@@ -20,9 +20,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT(KC_BT
                                                               [2] = LAYOUT(LMB_TOGGLE, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS),
                                                               [3] = LAYOUT(KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS)};
 #else
-//            MUTE, LMB, RMB, LAYER 1 (HOLD) MMB, mute on teams, ENTER, CTRL+C
+//            MUTE, LMB, RMB, LAYER 1 (HOLD) MMB, app windows, mission control, mute on teams
 //            transparent, BOOT MODE, RGB MODE FORWARD, transparent, RGB MODE BACK, RGB ON/OFF, RESET
-const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT(KC_MUTE, KC_BTN1, KC_BTN2, LT(1, KC_BTN3), LCMD(S(KC_M)), KC_ENTER, C(KC_C)),
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT(KC_MUTE, KC_BTN1, KC_BTN2, LT(1, KC_BTN3), C(KC_DOWN), C(KC_UP), LCMD(S(KC_M))),
                                                               [1] = LAYOUT(KC_TRNS, QK_BOOT, RGB_MOD, KC_TRNS, RGB_RMOD, RGB_TOG, EE_CLR),
                                                               [2] = LAYOUT(KC_TRNS, LMB_TOGGLE, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS),
                                                               [3] = LAYOUT(KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS)};
