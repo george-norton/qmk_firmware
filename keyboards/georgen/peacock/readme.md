@@ -19,6 +19,11 @@ Flashing example for this keyboard:
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
 
+## Version 1.01+ boards
+
+If you have a PCB that is version 1.01 or higher use the `v1_01` firmware and keymap (the map supports using the encoders).
+This branch works on MacOS much more smoothly than the multitouch development branches.
+
 ## Bootloader
 
 Enter the bootloader in 3 ways:
