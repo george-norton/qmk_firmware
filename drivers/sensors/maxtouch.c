@@ -92,7 +92,7 @@
 #endif
 
 #ifndef MXT_DX_GAIN
-    #define MXT_DX_GAIN 255
+    #define MXT_DX_GAIN 0
 #endif
 
 // Data from the object table. Registers are not at fixed addresses, they may vary between firmware
@@ -251,7 +251,7 @@ void maxtouch_init(void) {
     if (t42_proci_touchsupression_address) {
 
         mxt_proci_touchsupression_t42 t42 = {};
-        t42.ctrl = 97;
+        t42.ctrl = 0;
         t42.maxapprarea = 0;
         t42.maxtcharea = 0;
         t42.maxnumtchs = 0;
@@ -268,30 +268,22 @@ void maxtouch_init(void) {
     // Mutural Capacitive Touch Engine (CTE) configuration, currently we use all the default values but it feels like some of this stuff might be important.
     if (t46_cte_config_address) {
         mxt_spt_cteconfig_t46 t46 = {};
+        t46.idlesyncsperx = 40;
+        t46.activesyncsperx = 40;
         i2c_writeReg16(MXT336UD_ADDRESS, t46_cte_config_address, (uint8_t *)&t46, sizeof(mxt_spt_cteconfig_t46), MXT_I2C_TIMEOUT_MS);
     }
 
     if (t47_proci_stylus_address) {
         mxt_proci_stylus_t47 t47 = {};
         t47.ctrl = 1;                       // Enable stylus detection
-        t47.contmax = 70;                   // The maximum contact diameter of the stylus in 0.1mm increments
-        t47.maxtcharea = 90;                // Maximum touch area a contact can have an still be considered a stylus
-        t47.stability = 50;                 // Higher values prevent the stylus from dropping out when it gets small
+        t47.contmax = 50;                   // The maximum contact diameter of the stylus in 0.1mm increments
+        t47.maxtcharea = 100;               // Maximum touch area a contact can have an still be considered a stylus
+        t47.stability = 30;                 // Higher values prevent the stylus from dropping out when it gets small
         t47.confthr = 4;                    // Higher values increase the chances of correctly detecting as stylus, but introduce a delay
-        t47.amplthr = 40;                   // Any touches smaller than this are classified as stylus touches
-        t47.hoversup = 240;                 // 255 Disables hover supression
+        t47.amplthr = 60;                   // Any touches smaller than this are classified as stylus touches
+        t47.hoversup = 200;                 // 255 Disables hover supression
         t47.maxnumsty = 1;                  // Only report a single stylus
         i2c_writeReg16(MXT336UD_ADDRESS, t47_proci_stylus_address, (uint8_t *)&t47, sizeof(mxt_proci_stylus_t47), MXT_I2C_TIMEOUT_MS);
-    }
-
-    if (t80_proci_retransmissioncompensation_address) {
-        mxt_proci_retransmissioncompensation_t80 t80 = {};
-        t80.ctrl = 1;   // Enable retransmission
-        t80.compgain = 15;
-        t80.targetdelta = 32;
-        t80.compthr = 16;
-        t80.atchthr = 2;
-        i2c_writeReg16(MXT336UD_ADDRESS, t80_proci_retransmissioncompensation_address, (uint8_t *)&t80, sizeof(mxt_proci_retransmissioncompensation_t80), MXT_I2C_TIMEOUT_MS);
     }
 #endif
 
@@ -332,31 +324,24 @@ void maxtouch_init(void) {
         cfg.mrgthr                          = 2;    // Merge threshold
         cfg.mrghyst                         = 1;    // Merge threshold hysteresis
         cfg.mrgthradjstr                    = 4;
-        cfg.movsmooth                       = 224;  // The amount of smoothing applied to movements, this tails off at higher speeds
-        cfg.movfilter                       = 4 & 0xF;  // The lower 4 bits are the speed response value, higher values reduce lag, but also smoothing
-
+        cfg.movsmooth                       = 0;  // The amount of smoothing applied to movements, this tails off at higher speeds
+        cfg.movfilter                       = 0;  // The lower 4 bits are the speed response value, higher values reduce lag, but also smoothing
         // These two fields implement a simple filter for reducing jitter, but large values cause the pointer to stick in place before moving.
         cfg.movhysti                        = 4;    // Initial movement hysteresis
         cfg.movhystn                        = 2;    // Next movement hysteresis
 
         cfg.tchdiup                         = 4;    // MXT_UP touch detection integration - the number of cycles before the sensor decides an MXT_UP event has occurred
-        cfg.tchdidown                       = 4;    // MXT_DOWN touch detection integration - the number of cycles before the sensor decides an MXT_DOWN event has occurred
-        cfg.nexttchdi                       = 4;
+        cfg.tchdidown                       = 2;    // MXT_DOWN touch detection integration - the number of cycles before the sensor decides an MXT_DOWN event has occurred
+        cfg.nexttchdi                       = 2;
         cfg.xrange                          = CPI_TO_SAMPLES(MXT_CPI, MXT_SENSOR_WIDTH_MM);     // CPI handling, adjust the reported resolution
         cfg.yrange                          = CPI_TO_SAMPLES(MXT_CPI, MXT_SENSOR_HEIGHT_MM);    // CPI handling, adjust the reported resolution
-        cfg.cfg2                            = 5;
+        cfg.cfg2                            = 2;
 
         i2c_status_t status                 = i2c_writeReg16(MXT336UD_ADDRESS, t100_multiple_touch_touchscreen_address,
                                                 (uint8_t *)&cfg, sizeof(mxt_touch_multiscreen_t100), MXT_I2C_TIMEOUT_MS);
         if (status != I2C_STATUS_SUCCESS) {
             dprintf("T100 Configuration failed: %d\n", status);
         }
-    }
-
-    if (t6_command_processor_address) {
-        mxt_gen_commandprocessor_t6 t6 = {};
-        t6.calibrate = 1;
-        i2c_writeReg16(MXT336UD_ADDRESS, t6_command_processor_address, (uint8_t *)&t6, sizeof(mxt_gen_commandprocessor_t6), MXT_I2C_TIMEOUT_MS);
     }
 }
 
@@ -407,11 +392,6 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
     if (t44_message_count_address) {
         mxt_message_count message_count = {};
 
-        // Mark all touches as unknown
-        for (int i=0; i<DIGITIZER_CONTACT_COUNT; i++) {
-            digitizer_report.contacts[i].type = UNKNOWN;
-        }
-
         i2c_status_t status = i2c_readReg16(MXT336UD_ADDRESS, t44_message_count_address,
             (uint8_t *)&message_count, sizeof(mxt_message_count), MXT_I2C_TIMEOUT_MS);
         if (status == I2C_STATUS_SUCCESS) {
@@ -424,7 +404,6 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
                     const uint8_t fingers = message.data[1];
                     const uint16_t tcharea = (message.data[3] << 8) | message.data[2];
                     const uint16_t atcharea = (message.data[5] << 8) | message.data[4];
-
                     if (message.data[0] & (1<<6))
                         uprintf("TCH DETECT %d, SUPPRESS %d, COUNT %d, TCHAREA %u, ATCHAREA %u\n", (message.data[0] & (1<<7) ? 1 : 0), (message.data[0] & (1<<6) ? 1 : 0), fingers, tcharea, atcharea);
 #ifdef MAXTOUCH_BOOTLOADER_GESTURE
@@ -432,6 +411,12 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
                     // TODO: A better gesture.
                     if (fingers == 5) reset_keyboard();
 #endif
+                    if (fingers == 0) {
+                        // Belt and braces, make sure we dont have any stuck contacts
+                        for (int j=0; j<DIGITIZER_CONTACT_COUNT; j++) {
+                            digitizer_report.contacts[j].type = UNKNOWN;
+                        }
+                    }
                 }
                 else if ((message.report_id >= t100_subsequent_report_ids[0]) &&
                          (message.report_id <= t100_subsequent_report_ids[t100_num_reports-1])) {
@@ -501,10 +486,16 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
 
 typedef enum {
     MAXTOUCH_DEBUG_CHECK_VERSION,
-    MAXTOUCH_DEBUG_BOOTLOADER,
+    MAXTOUCH_DEBUG_COMMAND,
     MAXTOUCH_DEBUG_READ,
-    MAXTOUCH_DEBUG_WRITE
+    MAXTOUCH_DEBUG_WRITE,
 } maxtouch_debug_command;
+
+typedef enum {
+    MAXTOUCH_DEBUG_REBOOT_BOOTLOADER,
+    MAXTOUCH_DEBUG_SET_MOUSE_MODE,
+    MAXTOUCH_DEBUG_GET_MOUSE_MODE
+} maxtouch_debug_command_type;
 
 typedef enum {
     MAXTOUCH_DEBUG_OK,
@@ -527,8 +518,26 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             }
             break;
         }
-        case MAXTOUCH_DEBUG_BOOTLOADER: {
-            reset_keyboard();
+        case MAXTOUCH_DEBUG_COMMAND: {
+            const maxtouch_debug_command_type cmd_type = data[1];
+            switch (cmd_type) {
+                case MAXTOUCH_DEBUG_REBOOT_BOOTLOADER:
+                    reset_keyboard();
+                    break;
+                case MAXTOUCH_DEBUG_SET_MOUSE_MODE: {
+                    extern bool digitizer_send_mouse_reports;
+                    digitizer_send_mouse_reports = (bool) data[2];
+                    break;
+                }
+                case MAXTOUCH_DEBUG_GET_MOUSE_MODE: {
+                    extern bool digitizer_send_mouse_reports;
+                    data[1] = digitizer_send_mouse_reports;
+                    break;
+                }
+                default:
+                    status = MAXTOUCH_DEBUG_INVALID_CMD;
+                    break;
+            }
             break;
         }
         case MAXTOUCH_DEBUG_READ: {
