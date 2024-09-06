@@ -14,14 +14,21 @@
 #ifndef BELA_TRILL_TAP_TIME
 #    define BELA_TRILL_TAP_TIME 200
 #endif
+#ifndef BELA_TRILL_TAP_HOLD_TIME
+#    define BELA_TRILL_TAP_HOLD_TIME 300
+#endif
 #ifndef BELA_TRILL_SIZE_THRESHOLD
-#    define BELA_TRILL_SIZE_THRESHOLD 1000
+#    define BELA_TRILL_SIZE_THRESHOLD 0
 #endif
 #ifndef BELA_TRILL_MINIMUM_SIZE
 #    define BELA_TRILL_MINIMUM_SIZE 0
 #endif
 #ifndef BELA_TRILL_NOISE_THRESHOLD
-#    define BELA_TRILL_NOISE_THRESHOLD 40
+#    define BELA_TRILL_NOISE_THRESHOLD 10
+#endif
+// Time to wait between clicks when sending a double tap
+#ifndef BELA_TRILL_DOUBLE_TAP_PAUSE
+#   define BELA_TRILL_DOUBLE_TAP_PAUSE 15
 #endif
 // The sensor is pretty jittery, so we do some smoothingy
 #ifndef BELA_TRILL_SMOOTHING
@@ -63,11 +70,21 @@
 #define CONSTRAIN_HID(amt) ((amt) < INT8_MIN ? INT8_MIN : ((amt) > INT8_MAX ? INT8_MAX : (amt)))
 #define CONSTRAIN_HID_XY(amt) ((amt) < XY_REPORT_MIN ? XY_REPORT_MIN : ((amt) > XY_REPORT_MAX ? XY_REPORT_MAX : (amt)))
 
+typedef enum {
+    NO_GESTURE,
+    POSSIBLE_TAP,
+    HOLD,
+    DOUBLE_TAP,
+    RIGHT_CLICK
+} gesture_state;
+
+static gesture_state gesture = NO_GESTURE;
+static int tap_time = 0;
+
 typedef struct PACKED {
     uint8_t high;
     uint8_t low;
 } short_be;
-
 
 // Applicable to the Hex and Square sensors
 typedef struct PACKED {
@@ -88,10 +105,36 @@ void bela_trill_init(void) {
 
     // Reset the board
     bela_send_cmd(BELA_TRILL_RESET_CMD, 0, 0);
-    bela_send_cmd(BELA_TRILL_UPDATE_BASELINE_CMD, 0, 0);
     bela_send_cmd(BELA_TRILL_MINIMUM_SIZE_CMD, BELA_TRILL_MINIMUM_SIZE >> 8, BELA_TRILL_MINIMUM_SIZE & 0xFF);
     bela_send_cmd(BELA_TRILL_NOISE_THRESHOLD_CMD, BELA_TRILL_NOISE_THRESHOLD, 0);
+    bela_send_cmd(BELA_TRILL_SCAN_SETTINGS_CMD, 3, 16);
+    bela_send_cmd(BELA_TRILL_PRESCALER_CMD, 2, 0);
+    bela_send_cmd(BELA_TRILL_UPDATE_BASELINE_CMD, 0, 0);
+    // Calibrate
+    bela_send_cmd(BELA_TRILL_UPDATE_BASELINE_CMD, 0, 0);
+}
 
+static bool update_gesture_state(void) {
+    if (gesture == POSSIBLE_TAP) {
+        const uint32_t duration = timer_elapsed32(tap_time);
+        if (duration >= BELA_TRILL_TAP_HOLD_TIME) {
+            gesture = NO_GESTURE;
+            return true;
+        }
+    }
+    if (gesture == RIGHT_CLICK) {
+        gesture = NO_GESTURE;
+        return true;
+    }
+    if (gesture == DOUBLE_TAP) {
+        const uint32_t duration = timer_elapsed32(tap_time);
+        // If we dont wait long enough between taps, the host debounces and it looks like a long tap.
+        if (duration > BELA_TRILL_DOUBLE_TAP_PAUSE) {
+            gesture = POSSIBLE_TAP;
+            return true;
+        }
+    }
+    return false;
 }
 
 report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
@@ -108,10 +151,13 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
         static uint8_t last_frame_id = 0;
         const bool activity = (payload.status & BELA_TRILL_STATUS_ACTIVITY_MASK) == BELA_TRILL_STATUS_ACTIVITY_MASK;
 
+        update_gesture_state();
+
         if (frame_id == last_frame_id) {
             // No new data
             return mouse_report;
         }
+        mouse_report.buttons = 0;
 
         if (activity) {
             for (; h_touch_count < 4; h_touch_count++) {
@@ -127,12 +173,15 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
         const uint8_t touch_count = (h_touch_count && v_touch_count) ? MAX(h_touch_count, v_touch_count) : 0;
 
         static bool contact = false;
+        static int contact_start_time = 0;
+        //static int contact_start_x = 0;
+        //static int contact_start_y = 0;
+        static uint8_t max_contacts = 0;
         static uint16_t last_x = BELA_NO_TOUCH;
         static uint16_t last_y = BELA_NO_TOUCH;
         static uint16_t last_size_x = 0;
         static uint16_t last_size_y = 0;
 
-        static uint32_t timer = 0;
         last_frame_id = frame_id;
 
         if (touch_count) {
@@ -199,31 +248,49 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
                 }
             }
             else {
-                if (timer_elapsed32(timer) < BELA_TRILL_TAP_TIME) {
-                    // Tap hold gesture
-                    mouse_report.buttons |= 0x1;
+                if (gesture == POSSIBLE_TAP) {
+                    gesture = HOLD;
                 }
-                else {
-                    // Release any taps.
-                    mouse_report.buttons = 0x0;
-                }
-                timer = timer_read32();
                 last_x = BELA_NO_TOUCH;
                 last_y = BELA_NO_TOUCH;
+                contact_start_time = timer_read32();
             }
+            max_contacts = MAX(max_contacts, touch_count);
             contact = true;
         }
         else {
-            if (contact && timer_elapsed32(timer) < BELA_TRILL_TAP_TIME) {
-                // Tap gesture
-                mouse_report.buttons |= 0x1;
-                // Reset the timer - if another tap occurs we go to tap hold
-                timer = timer_read32();
+            if (gesture == HOLD) {
+                const uint32_t duration = timer_elapsed32(contact_start_time);
+                if (duration < BELA_TRILL_TAP_TIME) {
+                    gesture = DOUBLE_TAP;
+                    tap_time = timer_read32();
+                }
+                else {
+                    gesture = NO_GESTURE;
+                    max_contacts = 0;
+                }
+            }
+            else if (gesture == DOUBLE_TAP) {
+                // Do nothing for now
             }
             else {
-                if (timer_elapsed32(timer) > BELA_TRILL_TAP_TIME) {
-                    // Release any taps.
-                    mouse_report.buttons = 0x0;
+                const uint32_t duration = timer_elapsed32(contact_start_time);
+                if (duration < BELA_TRILL_TAP_TIME) {
+                    // If we tapped quickly, without moving far, send a tap
+                    if (max_contacts == 2) {
+                        // Right click
+                        gesture = RIGHT_CLICK;
+                        tap_time = timer_read32();
+                        max_contacts = 0;
+                    }
+                    else {
+                        // Left click
+                        gesture = POSSIBLE_TAP;
+                        tap_time = timer_read32();
+                    }
+                }
+                else {
+                    max_contacts = 0;
                 }
             }
 
@@ -233,6 +300,13 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
             history_index = 0;
             history_size = 0;
         }
+        if (max_contacts == 1 && (gesture == HOLD || gesture == POSSIBLE_TAP)) {
+            mouse_report.buttons |= 0x1;
+        }
+        if (gesture == RIGHT_CLICK) {
+            mouse_report.buttons |= 0x2;
+        }
     }
+
     return mouse_report;
 }
