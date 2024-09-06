@@ -23,6 +23,10 @@
 #ifndef BELA_TRILL_NOISE_THRESHOLD
 #    define BELA_TRILL_NOISE_THRESHOLD 40
 #endif
+// The sensor is pretty jittery, so we do some smoothingy
+#ifndef BELA_TRILL_SMOOTHING
+#    define BELA_TRILL_SMOOTHING 8
+#endif
 // Registers
 #define BELA_TRILL_CMD1_REG     0x00
 #define BELA_TRILL_CMD_ARG0_REG 0x01
@@ -87,8 +91,6 @@ void bela_trill_init(void) {
     bela_send_cmd(BELA_TRILL_UPDATE_BASELINE_CMD, 0, 0);
     bela_send_cmd(BELA_TRILL_MINIMUM_SIZE_CMD, BELA_TRILL_MINIMUM_SIZE >> 8, BELA_TRILL_MINIMUM_SIZE & 0xFF);
     bela_send_cmd(BELA_TRILL_NOISE_THRESHOLD_CMD, BELA_TRILL_NOISE_THRESHOLD, 0);
-    //bela_send_cmd(BELA_TRILL_AUTO_SCAN_TIMER_CMD, 32, 1); // Scan every millisecond
-    //bela_send_cmd(BELA_TRILL_SCAN_TRIGGER_CMD, 2, 0);
 
 }
 
@@ -98,6 +100,10 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
     if (status == I2C_STATUS_SUCCESS) {
         uint8_t h_touch_count = 0;
         uint8_t v_touch_count = 0;
+
+        static uint8_t history_index = 0;
+        static uint8_t history_size = 0;
+
         const uint8_t frame_id = payload.status & BELA_TRILL_STATUS_FRAMEID_MASK;
         static uint8_t last_frame_id = 0;
         const bool activity = (payload.status & BELA_TRILL_STATUS_ACTIVITY_MASK) == BELA_TRILL_STATUS_ACTIVITY_MASK;
@@ -130,10 +136,28 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
         last_frame_id = frame_id;
 
         if (touch_count) {
-            const uint16_t x = GET_LE(payload.horizontal_location[0]);
-            const uint16_t y = GET_LE(payload.vertical_location[0]);
+            uint32_t x = 0;
+            uint32_t y = 0;
+
+            static uint16_t x_history[BELA_TRILL_SMOOTHING] = {};
+            static uint16_t y_history[BELA_TRILL_SMOOTHING] = {};
+
             const uint16_t size_x = GET_LE(payload.horizontal_size[0]);
             const uint16_t size_y = GET_LE(payload.vertical_size[0]);
+
+            x_history[history_index] = GET_LE(payload.horizontal_location[0]);
+            y_history[history_index] = GET_LE(payload.vertical_location[0]);
+
+            history_index = (history_index + 1) % BELA_TRILL_SMOOTHING;
+            history_size = MIN(history_size + 1, BELA_TRILL_SMOOTHING);
+
+            for (int i = 0; i < history_size; i++) {
+                x += x_history[i];
+                y += y_history[i];
+            }
+
+            x /= history_size;
+            y /= history_size;
 
             // When a touch grows or shrinks (touchdown or lift off), it can look like movement. So filter out
             // small touches, or touches where the size is changing too much.
@@ -150,8 +174,9 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
                 {
                     if (touch_count == 1) {
                         if (x != BELA_NO_TOUCH && last_x != BELA_NO_TOUCH && y != BELA_NO_TOUCH && last_y != BELA_NO_TOUCH) {
-                            mouse_report.x = CONSTRAIN_HID_XY(x - last_x);
-                            mouse_report.y = CONSTRAIN_HID_XY(last_y - y);
+
+                            mouse_report.x = CONSTRAIN_HID_XY((uint16_t) x - last_x);
+                            mouse_report.y = CONSTRAIN_HID_XY(last_y - (uint16_t) y);
                             //uprintf("%02x %d %d: %dx%d %d (%d) (%d)\n", payload.status, contact, touch_count, mouse_report.x, mouse_report.y, mouse_report.buttons, GET_LE(payload.horizontal_size[0]), GET_LE(payload.vertical_size[0]));
                         }
                     } else if (touch_count > 1) {
@@ -205,6 +230,8 @@ report_mouse_t bela_trill_get_report(report_mouse_t mouse_report) {
             last_x = BELA_NO_TOUCH;
             last_y = BELA_NO_TOUCH;
             contact = false;
+            history_index = 0;
+            history_size = 0;
         }
     }
     return mouse_report;
