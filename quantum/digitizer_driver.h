@@ -57,6 +57,6 @@
 #        define DIGITIZER_HAS_STYLUS true
 #    endif
 #    ifndef DIGITIZER_CONTACT_COUNT
-#        define DIGITIZER_CONTACT_COUNT 1
+#        define DIGITIZER_CONTACT_COUNT 0
 #    endif
 #endif
