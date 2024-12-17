@@ -136,7 +136,11 @@
 #endif
 
 #ifndef MXT_CONFTHR
-#   define MXT_CONFTHR 2
+#    define MXT_CONFTHR 2
+#endif
+
+#ifndef MXT_ENABLE_STYLUS
+#    define MXT_ENABLE_STYLUS DIGITIZER_HAS_STYLUS
 #endif
 
 // Data from the object table. Registers are not at fixed addresses, they may vary between firmware
@@ -335,16 +339,16 @@ void maxtouch_init(void) {
 #ifdef DIGITIZER_HAS_STYLUS
     if (t47_proci_stylus_address) {
         mxt_proci_stylus_t47 t47 = {};
-        t47.ctrl                 = 1;              // Enable stylus detection
-        t47.cfg                  = T47_CFG_SUPSTY; // Supress stylus detections when normal touches are present.
-        t47.contmax              = 80;             // The maximum contact diameter of the stylus in 0.1mm increments
-        t47.maxtcharea           = 100;            // Maximum touch area a contact can have an still be considered a stylus
-        t47.stability            = 30;             // Higher values prevent the stylus from dropping out when it gets small
-        t47.confthr              = 6;              // Higher values increase the chances of correctly detecting as stylus, but introduce a delay
-        t47.amplthr              = 60;             // Any touches smaller than this are classified as stylus touches
-        t47.supstyto             = 5;              // Continue to suppress stylus touches until supstyto x 200ms after the last touch is removed.
-        t47.hoversup             = 200;            // 255 Disables hover supression
-        t47.maxnumsty            = 1;              // Only report a single stylus
+        t47.ctrl                 = MXT_ENABLE_STYLUS; // Enable stylus detection
+        t47.cfg                  = T47_CFG_SUPSTY;    // Supress stylus detections when normal touches are present.
+        t47.contmax              = 60;                // The maximum contact diameter of the stylus in 0.1mm increments
+        t47.maxtcharea           = 70;                // Maximum touch area a contact can have an still be considered a stylus
+        t47.stability            = 30;                // Higher values prevent the stylus from dropping out when it gets small
+        t47.confthr              = 6;                 // Higher values increase the chances of correctly detecting as stylus, but introduce a delay
+        t47.amplthr              = 50;                // Any touches smaller than this are classified as stylus touches
+        t47.supstyto             = 5;                 // Continue to suppress stylus touches until supstyto x 200ms after the last touch is removed.
+        t47.hoversup             = 0;                 // 255 Disables hover supression
+        t47.maxnumsty            = 1;                 // Only report a single stylus
         i2c_writeReg16(MXT336UD_ADDRESS, t47_proci_stylus_address, (uint8_t *)&t47, sizeof(mxt_proci_stylus_t47), MXT_I2C_TIMEOUT_MS);
     }
 #endif
