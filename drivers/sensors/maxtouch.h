@@ -113,16 +113,6 @@ typedef struct PACKED {
     unsigned char cfg;
 } mxt_gen_acquisitionconfig_t8;
 
-static const unsigned char T42_CTRL_ENABLE    = 0x01;
-static const unsigned char T42_CTRL_SHAPEEN   = 0x04;
-static const unsigned char T42_CTRL_DISLOBJ   = 0x08;
-static const unsigned char T42_CTRL_DISTLOCK  = 0x10;
-static const unsigned char T42_CTRL_SUPDISTEN = 0x20;
-static const unsigned char T42_CTRL_EDGESUP   = 0x40;
-
-static const unsigned char T42_CFG_RELAXCLOSEUP = 0x01;
-static const unsigned char T42_CFG_RELAXDIAGSUP = 0x02;
-static const unsigned char T42_CFG_SUPTCHRPTEN  = 0x04;
 
 typedef struct PACKED {
     unsigned char ctrl;
@@ -148,9 +138,8 @@ static const unsigned char T25_TEST_POWER        = 0x01;
 static const unsigned char T25_TEST_PIN_FAULT    = 0x12;
 static const unsigned char T25_TEST_SIGNAL_LIMIT = 0x17;
 static const unsigned char T25_TEST_ALL          = 0xFE;
-
-static const unsigned char T25_TEST_INVALID = 0xFD;
-static const unsigned char T25_TEST_PASSED  = 0xFE;
+static const unsigned char T25_TEST_INVALID      = 0xFD;
+static const unsigned char T25_TEST_PASSED       = 0xFE;
 
 typedef struct PACKED {
     unsigned char ctrl;
@@ -169,8 +158,17 @@ typedef struct PACKED {
     unsigned char edgesupstrength;
 } mxt_proci_touchsupression_t42;
 
-static const unsigned char T46_CFG_SYNCLOSSMODE = 0x02;
-static const unsigned char T46_CFG_DELTASHIFT   = 0x04;
+
+static const unsigned char T42_CTRL_ENABLE    = 0x01;
+static const unsigned char T42_CTRL_SHAPEEN   = 0x04;
+static const unsigned char T42_CTRL_DISLOBJ   = 0x08;
+static const unsigned char T42_CTRL_DISTLOCK  = 0x10;
+static const unsigned char T42_CTRL_SUPDISTEN = 0x20;
+static const unsigned char T42_CTRL_EDGESUP   = 0x40;
+
+static const unsigned char T42_CFG_RELAXCLOSEUP = 0x01;
+static const unsigned char T42_CFG_RELAXDIAGSUP = 0x02;
+static const unsigned char T42_CFG_SUPTCHRPTEN  = 0x04;
 
 typedef struct PACKED {
     unsigned char  reserved[2];
@@ -187,7 +185,9 @@ typedef struct PACKED {
     unsigned char  cfg;
 } mxt_spt_cteconfig_t46;
 
-static const unsigned char T47_CFG_SUPSTY = 0x20;
+static const unsigned char T46_CFG_SYNCLOSSMODE = 0x02;
+static const unsigned char T46_CFG_DELTASHIFT   = 0x04;
+
 
 typedef struct PACKED {
     unsigned char ctrl;
@@ -233,8 +233,8 @@ typedef struct PACKED {
     unsigned char movhistcfg;
 } mxt_proci_stylus_t47;
 
-static const unsigned char T56_CTRL_ENABLE = 0x01;
-static const unsigned char T56_CTRL_RPTEN  = 0x02;
+
+static const unsigned char T47_CFG_SUPSTY = 0x20;
 
 typedef struct PACKED {
     unsigned char ctrl;
@@ -244,13 +244,9 @@ typedef struct PACKED {
     unsigned char intdelay[41];
 } mxt_proci_shieldless_t56;
 
-static const unsigned char T65_CTRL_ENABLE         = 0x01;
-static const unsigned char T65_CTRL_RPTEN          = 0x02;
-static const unsigned char T65_CTRL_DISPRESS       = 0x08;
-static const unsigned char T65_CTRL_DISRELEASE     = 0x10;
-static const unsigned char T65_CTRL_DISHIST        = 0x80;
-static const unsigned char T65_ATCHRATIO_ATCHRATIO = 0x01;
-static const unsigned char T65_ATCHRATIO_DSRATIO   = 0x10;
+
+static const unsigned char T56_CTRL_ENABLE = 0x01;
+static const unsigned char T56_CTRL_RPTEN  = 0x02;
 
 typedef struct PACKED {
     unsigned char ctrl;
@@ -276,6 +272,14 @@ typedef struct PACKED {
     unsigned char exfrcthrhyst;
     unsigned char exfrcto;
 } mxt_proci_lensbending_t65;
+
+static const unsigned char T65_CTRL_ENABLE         = 0x01;
+static const unsigned char T65_CTRL_RPTEN          = 0x02;
+static const unsigned char T65_CTRL_DISPRESS       = 0x08;
+static const unsigned char T65_CTRL_DISRELEASE     = 0x10;
+static const unsigned char T65_CTRL_DISHIST        = 0x80;
+static const unsigned char T65_ATCHRATIO_ATCHRATIO = 0x01;
+static const unsigned char T65_ATCHRATIO_DSRATIO   = 0x10;
 
 typedef struct PACKED {
     unsigned char ctrl;
