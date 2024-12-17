@@ -5,7 +5,7 @@
 
 // These parameters are common to all Procyon boards
 // OR in new definitions as boards become available
-#if defined(PROCYON_50_42) || defined(PROCYON_42_50)
+#if defined(PROCYON_50_42) || defined(PROCYON_42_50) || defined(PROCYON_57_80)
 #    ifndef MXT_GAIN
 #        define MXT_GAIN 10
 #    endif
@@ -45,5 +45,13 @@
 #    define MXT_SENSOR_HEIGHT_MM 50
 #    define MXT_MATRIX_X_SIZE 10
 #    define MXT_MATRIX_Y_SIZE 12
+#    define MXT_MESALLOW 3
+#endif
+
+#ifdef PROCYON_57_80
+#    define MXT_SENSOR_WIDTH_MM 57
+#    define MXT_SENSOR_HEIGHT_MM 80
+#    define MXT_MATRIX_X_SIZE 12
+#    define MXT_MATRIX_Y_SIZE 20
 #    define MXT_MESALLOW 3
 #endif
