@@ -68,7 +68,6 @@ typedef struct {
     digitizer_t (*get_report)(digitizer_t digitizer_report);
 } digitizer_driver_t;
 
-
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
 bool                  digitizer_send_mouse_reports = true;
 static report_mouse_t mouse_report                 = {};
@@ -83,7 +82,6 @@ const pointing_device_driver_t digitizer_pointing_device_driver = {.init = NULL,
 #if defined(DIGITIZER_DRIVER_azoteq_iqs5xx)
 #    include "drivers/sensors/azoteq_iqs5xx.h"
 #    include "wait.h"
-
 extern digitizer_t digitizer_driver_get_report(digitizer_t digitizer_report);
 
 const digitizer_driver_t digitizer_driver = {.init = azoteq_iqs5xx_init, .get_report = digitizer_driver_get_report};
@@ -121,6 +119,11 @@ void digitizer_set_shared_report(digitizer_t report) {
 }
 #endif // defined(SPLIT_DIGITIZER_ENABLE)
 
+/**
+ * @brief Utility for checking if the digitizer state has changed between two structs.
+ *
+ * @return digitizer_t
+ */
 static bool has_digitizer_state_changed(digitizer_t *tmp_state, digitizer_t *old_state) {
     const int cmp = memcmp(tmp_state, old_state, sizeof(digitizer_t));
     return cmp != 0;
@@ -152,17 +155,27 @@ static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report) {
 
 static uint16_t mouse_cpi = 400;
 
+/**
+ * @brief Gets the CPI used by the digitizer mouse fallback feature.
+ *
+ * @return the current CPI value
+ */
 static uint16_t digitizer_get_cpi(void) {
     return mouse_cpi;
 }
 
+/**
+ * @brief Sets the CPI used by the digitizer mouse fallback feature.
+ *
+ *  @param[in] the new CPI value
+ */
 static void digitizer_set_cpi(uint16_t cpi) {
     mouse_cpi = cpi;
 }
 #endif
 
 /**
- * @brief Sets digitizer state used by the digitier task
+ * @brief Sets the digitizer state, the new state will be sent when the digitizer task next runs.
  *
  * @param[in] new_digitizer_state
  */
@@ -172,13 +185,13 @@ void digitizer_set_state(digitizer_t new_digitizer_state) {
 }
 
 /**
- * @brief Keyboard level code pointing device initialisation
+ * @brief Keyboard level digitizer initialisation function
  *
  */
 __attribute__((weak)) void digitizer_init_kb(void) {}
 
 /**
- * @brief User level code pointing device initialisation
+ * @brief User level digitizer initialisation function
  *
  */
 __attribute__((weak)) void digitizer_init_user(void) {}
@@ -207,6 +220,9 @@ __attribute__((weak)) digitizer_t digitizer_task_kb(digitizer_t digitizer_state)
     return digitizer_task_user(digitizer_state);
 }
 
+/**
+ * \brief Initializes the digitizer feature.
+ */
 void digitizer_init(void) {
 #if defined(SPLIT_DIGITIZER_ENABLE)
     if (!(DIGITIZER_THIS_SIDE)) return;
@@ -227,6 +243,9 @@ void digitizer_init(void) {
 }
 
 #ifdef DIGITIZER_MOTION_PIN
+/**
+ * \brief Checks if the motion pin is active.
+ */
 __attribute__((weak)) bool digitizer_motion_detected(void) {
 #    ifdef DIGITIZER_MOTION_PIN_ACTIVE_LOW
     return !readPin(DIGITIZER_MOTION_PIN);
@@ -242,6 +261,10 @@ typedef enum { NO_GESTURE, POSSIBLE_TAP, HOLD, RIGHT_CLICK, MIDDLE_CLICK, SWIPE 
 static gesture_state gesture  = NO_GESTURE;
 static int           tap_time = 0;
 
+/**
+ * \brief Internal utility for updating the gesture state once timeouts expire.
+ * @return true if a timeout has expired and we should generate a gesture event.
+ */
 static bool update_gesture_state(void) {
     if (digitizer_send_mouse_reports) {
         if (gesture == POSSIBLE_TAP) {
@@ -260,6 +283,11 @@ static bool update_gesture_state(void) {
 }
 
 // We can fallback to reporting as a mouse for hosts which do not implement trackpad support
+
+/**
+ * \brief Generate a mouse report from the digitizer report.
+ * @param[in] report a new digitizer report
+ */
 static void update_mouse_report(report_digitizer_t *report) {
     static uint16_t last_x = 0;
     static uint16_t last_y = 0;
@@ -394,6 +422,12 @@ static void update_mouse_report(report_digitizer_t *report) {
 }
 #endif
 
+/**
+ * \brief Task processing routine for the digitizer feature. This function polls the digitizer hardware
+ * and sends events to the host as required.
+ *
+ * \return true if a new event was sent
+ */
 bool digitizer_task(void) {
     static int         last_contacts = 0;
     report_digitizer_t report        = {.fingers = {}, .contact_count = 0, .scan_time = 0, .button1 = digitizer_state.button1, .button2 = digitizer_state.button2, .button3 = digitizer_state.button3};
