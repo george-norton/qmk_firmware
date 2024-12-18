@@ -73,8 +73,8 @@ bool                  digitizer_send_mouse_reports = true;
 static report_mouse_t mouse_report                 = {};
 
 static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report);
-static uint16_t digitizer_get_cpi(void);
-static void digitizer_set_cpi(uint16_t cpi);
+static uint16_t       digitizer_get_cpi(void);
+static void           digitizer_set_cpi(uint16_t cpi);
 
 const pointing_device_driver_t digitizer_pointing_device_driver = {.init = NULL, .get_report = digitizer_get_mouse_report, .get_cpi = digitizer_get_cpi, .set_cpi = digitizer_set_cpi};
 #endif
@@ -289,9 +289,9 @@ static bool update_gesture_state(void) {
  * @param[in] report a new digitizer report
  */
 static void update_mouse_report(report_digitizer_t *report) {
-    static uint16_t last_x = 0;
-    static uint16_t last_y = 0;
-    static bool last_tip = 0;
+    static uint16_t last_x   = 0;
+    static uint16_t last_y   = 0;
+    static bool     last_tip = 0;
 
     // Some state held to perform basic gesture detection
     static int     contact_start_time = 0;
@@ -312,8 +312,8 @@ static void update_mouse_report(report_digitizer_t *report) {
         }
     }
 
-    const uint16_t x = report->fingers[0].x * (DIGITIZER_RESOLUTION_X/DIGITIZER_WIDTH_MM) / mouse_cpi;
-    const uint16_t y = report->fingers[0].y * (DIGITIZER_RESOLUTION_Y/DIGITIZER_HEIGHT_MM)  / mouse_cpi;
+    const uint16_t x = report->fingers[0].x * (DIGITIZER_RESOLUTION_X / DIGITIZER_WIDTH_MM) / mouse_cpi;
+    const uint16_t y = report->fingers[0].y * (DIGITIZER_RESOLUTION_Y / DIGITIZER_HEIGHT_MM) / mouse_cpi;
 
     if (last_contacts == 0) {
         if (contacts > 0) {
@@ -333,10 +333,10 @@ static void update_mouse_report(report_digitizer_t *report) {
     } else {
         max_contacts = MAX(contacts, max_contacts);
 
-        const uint32_t duration   = timer_elapsed32(contact_start_time);
+        const uint32_t duration = timer_elapsed32(contact_start_time);
 
-        const int32_t  distance_x = x - contact_start_x;
-        const int32_t  distance_y = y - contact_start_y;
+        const int32_t distance_x = x - contact_start_x;
+        const int32_t distance_y = y - contact_start_y;
 
         switch (contacts) {
             case 0: {
@@ -416,8 +416,8 @@ static void update_mouse_report(report_digitizer_t *report) {
         mouse_report.buttons |= 0x4;
     }
 
-    last_x = x;
-    last_y = y;
+    last_x   = x;
+    last_y   = y;
     last_tip = report->fingers[0].tip;
 }
 #endif
@@ -474,8 +474,7 @@ bool digitizer_task(void) {
         int skip_count = 0;
         for (int i = 0; i < DIGITIZER_CONTACT_COUNT; i++) {
             // If this is a finger which is down, or it was on the last scan (but now it is up)..
-            const bool    finger_contact = (tmp_state.contacts[i].type == FINGER && tmp_state.contacts[i].tip) ||
-                                            (digitizer_state.contacts[i].type == FINGER && digitizer_state.contacts[i].tip);
+            const bool    finger_contact = (tmp_state.contacts[i].type == FINGER && tmp_state.contacts[i].tip) || (digitizer_state.contacts[i].type == FINGER && digitizer_state.contacts[i].tip);
             const uint8_t finger_index   = finger_contact ? report.contact_count : DIGITIZER_CONTACT_COUNT - skip_count - 1;
 
             if (tmp_state.contacts[i].type != UNKNOWN) {
@@ -542,8 +541,7 @@ bool digitizer_task(void) {
 #    if !defined(POINTING_DEVICE_ENABLE)
             host_mouse_send(&mouse_report);
 #    endif
-        }
-        else 
+        } else
 #endif
         {
             host_digitizer_send(&report);
