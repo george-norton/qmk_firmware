@@ -36,7 +36,7 @@
 #   define I2C1_CLOCK_SPEED 1000000
 #   define DIGITIZER_MOTION_PIN GP12
 #   define DIGITIZER_MOTION_PIN_ACTIVE_LOW yes
-#   define PROCYON_50_42
+#   define PROCYON_42_50
 #   define MXT_SWITCH_XY
 #   define MXT_INVERT_Y
 #else
