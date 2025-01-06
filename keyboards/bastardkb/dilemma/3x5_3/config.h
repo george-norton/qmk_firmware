@@ -37,8 +37,6 @@
 #   define DIGITIZER_MOTION_PIN GP12
 #   define DIGITIZER_MOTION_PIN_ACTIVE_LOW yes
 #   define PROCYON_42_50
-#   define MXT_SWITCH_XY
-#   define MXT_INVERT_Y
 #else
     /* Cirque trackpad over SPI. */
 #   define SPI_DRIVER SPID0
