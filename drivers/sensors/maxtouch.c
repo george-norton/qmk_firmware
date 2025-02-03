@@ -207,7 +207,7 @@ void maxtouch_init(void) {
     wait_ms(300);
 #endif
     i2c_init();
-    i2c_status_t status = i2c_readReg16(MXT336UD_ADDRESS, MXT_REG_INFORMATION_BLOCK, (uint8_t *)&information, sizeof(mxt_information_block), MXT_I2C_TIMEOUT_MS);
+    i2c_status_t status = i2c_read_register16(MXT336UD_ADDRESS, MXT_REG_INFORMATION_BLOCK, (uint8_t *)&information, sizeof(mxt_information_block), MXT_I2C_TIMEOUT_MS);
 
     // First read the object table to lookup addresses and report_ids of the various objects
     if (status == I2C_STATUS_SUCCESS) {
@@ -217,7 +217,7 @@ void maxtouch_init(void) {
         uint16_t object_table_element_address = sizeof(mxt_information_block);
         for (int i = 0; i < information.num_objects; i++) {
             mxt_object_table_element object = {};
-            i2c_status_t             status = i2c_readReg16(MXT336UD_ADDRESS, SWAP_BYTES(object_table_element_address), (uint8_t *)&object, sizeof(mxt_object_table_element), MXT_I2C_TIMEOUT_MS);
+            i2c_status_t             status = i2c_read_register16(MXT336UD_ADDRESS, SWAP_BYTES(object_table_element_address), (uint8_t *)&object, sizeof(mxt_object_table_element), MXT_I2C_TIMEOUT_MS);
             if (status == I2C_STATUS_SUCCESS) {
                 // Store addresses in network byte order
                 const uint16_t address = object.position_ms_byte | (object.position_ls_byte << 8);
@@ -289,7 +289,7 @@ void maxtouch_init(void) {
     // TODO Remove? Maybe not interesting unless for whatever reason encryption is enabled and we need to turn it off
     if (t2_encryption_status_address) {
         mxt_gen_encryptionstatus_t2 t2     = {};
-        i2c_status_t                status = i2c_readReg16(MXT336UD_ADDRESS, t2_encryption_status_address, (uint8_t *)&t2, sizeof(mxt_gen_encryptionstatus_t2), MXT_I2C_TIMEOUT_MS);
+        i2c_status_t                status = i2c_read_register16(MXT336UD_ADDRESS, t2_encryption_status_address, (uint8_t *)&t2, sizeof(mxt_gen_encryptionstatus_t2), MXT_I2C_TIMEOUT_MS);
         if (status != I2C_STATUS_SUCCESS) {
             dprintf("Failed to read T2. Status: %02x %d\n", t2.status, t2.error);
         }
@@ -303,7 +303,7 @@ void maxtouch_init(void) {
         t7.actv2idelto            = 50;                                    // The timeout for transitioning from active to idle mode
         t7.cfg                    = T7_CFG_ACTVPIPEEN | T7_CFG_IDLEPIPEEN; // Enable pipelining in both active and idle mode
 
-        i2c_writeReg16(MXT336UD_ADDRESS, t7_powerconfig_address, (uint8_t *)&t7, sizeof(mxt_gen_powerconfig_t7), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t7_powerconfig_address, (uint8_t *)&t7, sizeof(mxt_gen_powerconfig_t7), MXT_I2C_TIMEOUT_MS);
     }
 
     // Configure capacitive acquision, currently we use all the default values but it feels like some of this stuff might be important.
@@ -319,7 +319,7 @@ void maxtouch_init(void) {
         t8.atchfrccalratio = 25;
         t8.measallow       = MXT_MESALLOW;
 
-        i2c_writeReg16(MXT336UD_ADDRESS, t8_acquisitionconfig_address, (uint8_t *)&t8, sizeof(mxt_gen_acquisitionconfig_t8), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t8_acquisitionconfig_address, (uint8_t *)&t8, sizeof(mxt_gen_acquisitionconfig_t8), MXT_I2C_TIMEOUT_MS);
     }
 
 #ifdef DIGITIZER_HAS_STYLUS
@@ -338,7 +338,7 @@ void maxtouch_init(void) {
         t42.maxscrnarea     = 0;
         t42.edgesupstrength = 0;
         t42.cfg             = 1;
-        i2c_writeReg16(MXT336UD_ADDRESS, t42_proci_touchsupression_address, (uint8_t *)&t42, sizeof(mxt_proci_touchsupression_t42), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t42_proci_touchsupression_address, (uint8_t *)&t42, sizeof(mxt_proci_touchsupression_t42), MXT_I2C_TIMEOUT_MS);
     }
 #endif
 
@@ -349,7 +349,7 @@ void maxtouch_init(void) {
         t46.activesyncsperx       = MXT_ACTIVE_SYNCS_PER_X; // ADC samples per X.
         t46.inrushcfg             = 0;  // Set Y-line inrush limit resistors.
 
-        i2c_writeReg16(MXT336UD_ADDRESS, t46_cte_config_address, (uint8_t *)&t46, sizeof(mxt_spt_cteconfig_t46), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t46_cte_config_address, (uint8_t *)&t46, sizeof(mxt_spt_cteconfig_t46), MXT_I2C_TIMEOUT_MS);
     }
 
 #ifdef DIGITIZER_HAS_STYLUS
@@ -365,7 +365,7 @@ void maxtouch_init(void) {
         t47.supstyto             = 0;                   // Continue to suppress stylus touches until supstyto x 200ms after the last touch is removed.
         t47.hoversup             = 0;                   // 255 Disables hover supression
         t47.maxnumsty            = 1;                   // Only report a single stylus
-        i2c_writeReg16(MXT336UD_ADDRESS, t47_proci_stylus_address, (uint8_t *)&t47, sizeof(mxt_proci_stylus_t47), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t47_proci_stylus_address, (uint8_t *)&t47, sizeof(mxt_proci_stylus_t47), MXT_I2C_TIMEOUT_MS);
     }
 #endif
 
@@ -375,7 +375,7 @@ void maxtouch_init(void) {
         t80.compgain                                 = 5;
         t80.targetdelta                              = 125;
         t80.compthr                                  = 60;
-        i2c_writeReg16(MXT336UD_ADDRESS, t80_proci_retransmissioncompensation_address, (uint8_t *)&t80, sizeof(mxt_proci_retransmissioncompensation_t80), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t80_proci_retransmissioncompensation_address, (uint8_t *)&t80, sizeof(mxt_proci_retransmissioncompensation_t80), MXT_I2C_TIMEOUT_MS);
     }
 
     // Multiple touch touchscreen confguration - defines an area of the sensor to use as a trackpad/touchscreen. This object generates all our interesting report messages.
@@ -435,7 +435,7 @@ void maxtouch_init(void) {
 #endif
         cfg.cfg2         = MXT_CONFTHR; // Touch debounce
 
-        i2c_status_t status = i2c_writeReg16(MXT336UD_ADDRESS, t100_multiple_touch_touchscreen_address, (uint8_t *)&cfg, sizeof(mxt_touch_multiscreen_t100), MXT_I2C_TIMEOUT_MS);
+        i2c_status_t status = i2c_write_register16(MXT336UD_ADDRESS, t100_multiple_touch_touchscreen_address, (uint8_t *)&cfg, sizeof(mxt_touch_multiscreen_t100), MXT_I2C_TIMEOUT_MS);
         if (status != I2C_STATUS_SUCCESS) {
             dprintf("T100 Configuration failed: %d\n", status);
         }
@@ -449,7 +449,7 @@ void maxtouch_init(void) {
         t56.ctrl                     = T56_CTRL_ENABLE;
         t56.optint                   = 1;
         t56.inttime                  = 10;
-        i2c_writeReg16(MXT336UD_ADDRESS, t56_proci_shieldless_address, (uint8_t *)&t56, sizeof(mxt_proci_shieldless_t56), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t56_proci_shieldless_address, (uint8_t *)&t56, sizeof(mxt_proci_shieldless_t56), MXT_I2C_TIMEOUT_MS);
     }
 #endif
 #ifdef MXT_T65_LENS_BENDING_ENABLE
@@ -457,7 +457,7 @@ void maxtouch_init(void) {
         mxt_proci_lensbending_t65 t65 = {};
         t65.ctrl                      = T65_CTRL_ENABLE;
         t65.lpfiltcoef                = MXT_LOW_PASS_FILTER_COEFFICIENT; // default (0): 5, range 1 to 15.
-        i2c_writeReg16(MXT336UD_ADDRESS, t65_proci_lensbending_address, (uint8_t *)&t65, sizeof(mxt_proci_lensbending_t65), MXT_I2C_TIMEOUT_MS);
+        i2c_write_register16(MXT336UD_ADDRESS, t65_proci_lensbending_address, (uint8_t *)&t65, sizeof(mxt_proci_lensbending_t65), MXT_I2C_TIMEOUT_MS);
     }
 #endif
 }
@@ -467,11 +467,11 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
     if (t44_message_count_address) {
         mxt_message_count message_count = {};
 
-        i2c_status_t status = i2c_readReg16(MXT336UD_ADDRESS, t44_message_count_address, (uint8_t *)&message_count, sizeof(mxt_message_count), MXT_I2C_TIMEOUT_MS);
+        i2c_status_t status = i2c_read_register16(MXT336UD_ADDRESS, t44_message_count_address, (uint8_t *)&message_count, sizeof(mxt_message_count), MXT_I2C_TIMEOUT_MS);
         if (status == I2C_STATUS_SUCCESS) {
             for (int i = 0; i < message_count.count; i++) {
                 mxt_message message = {};
-                status              = i2c_readReg16(MXT336UD_ADDRESS, t5_message_processor_address, (uint8_t *)&message, sizeof(mxt_message), MXT_I2C_TIMEOUT_MS);
+                status              = i2c_read_register16(MXT336UD_ADDRESS, t5_message_processor_address, (uint8_t *)&message, sizeof(mxt_message), MXT_I2C_TIMEOUT_MS);
 
                 if (message.report_id == t100_first_report_id) {
                     const uint8_t  fingers  = message.data[1];
@@ -576,7 +576,7 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
                         t25.sesiglimits[1] = MXT_GAIN;
                         t25.sesiglimits[2] = MXT_DX_GAIN;
 
-                        i2c_writeReg16(MXT336UD_ADDRESS, t25_self_test_address, (uint8_t *)&t25, sizeof(mxt_spt_selftest_t25), MXT_I2C_TIMEOUT_MS);
+                        i2c_write_register16(MXT336UD_ADDRESS, t25_self_test_address, (uint8_t *)&t25, sizeof(mxt_spt_selftest_t25), MXT_I2C_TIMEOUT_MS);
                     }
                 } else {
                     uprintf("Unhandled event %d (%02x %02x %02x %02x %02x %02x) %d\n", message.report_id, message.data[0], message.data[1], message.data[2], message.data[3], message.data[4], message.data[5], t25_self_test_report_id);
@@ -645,7 +645,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             if (read_length > 0x1c) {
                 status = MAXTOUCH_DEBUG_INVALID_LENGTH;
             } else {
-                if (i2c_readReg16(MXT336UD_ADDRESS, read_address, (uint8_t *)&data[4], read_length, MXT_I2C_TIMEOUT_MS) != I2C_STATUS_SUCCESS) {
+                if (i2c_read_register16(MXT336UD_ADDRESS, read_address, (uint8_t *)&data[4], read_length, MXT_I2C_TIMEOUT_MS) != I2C_STATUS_SUCCESS) {
                     status = MAXTOUCH_DEBUG_I2C_ERR;
                 }
             }
@@ -657,7 +657,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             if (write_length > 0x1c) {
                 status = MAXTOUCH_DEBUG_INVALID_LENGTH;
             } else {
-                if (i2c_writeReg16(MXT336UD_ADDRESS, write_address, (uint8_t *)&data[4], write_length, MXT_I2C_TIMEOUT_MS) != I2C_STATUS_SUCCESS) {
+                if (i2c_write_register16(MXT336UD_ADDRESS, write_address, (uint8_t *)&data[4], write_length, MXT_I2C_TIMEOUT_MS) != I2C_STATUS_SUCCESS) {
                     status = MAXTOUCH_DEBUG_I2C_ERR;
                 }
             }
