@@ -37,6 +37,11 @@
 #    define DIGITIZER_MOUSE_TAP_HOLD_TIME 300
 #endif
 
+#ifndef DIGITIZER_MOUSE_TAP_PAUSE_TIME
+#    define DIGITIZER_MOUSE_TAP_PAUSE_TIME 20
+#endif
+
+
 #ifndef DIGITIZER_MOUSE_TAP_DISTANCE
 #    define DIGITIZER_MOUSE_TAP_DISTANCE 15
 #endif
@@ -256,7 +261,7 @@ __attribute__((weak)) bool digitizer_motion_detected(void) {
 #endif
 
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
-typedef enum { NO_GESTURE, POSSIBLE_TAP, HOLD, RIGHT_CLICK, MIDDLE_CLICK, SWIPE } gesture_state;
+typedef enum { NO_GESTURE, DOWN, POSSIBLE_TAP, PAUSE, HOLD, RIGHT_CLICK, MIDDLE_CLICK, SWIPE, UP } gesture_state;
 
 static gesture_state gesture  = NO_GESTURE;
 static int           tap_time = 0;
@@ -267,15 +272,24 @@ static int           tap_time = 0;
  */
 static bool update_gesture_state(void) {
     if (digitizer_send_mouse_reports) {
+
+
+        if (gesture == PAUSE) {
+            const uint32_t duration = timer_elapsed32(tap_time);
+            if (duration >= DIGITIZER_MOUSE_TAP_PAUSE_TIME) {
+                gesture = HOLD;
+            }
+        }
+
         if (gesture == POSSIBLE_TAP) {
             const uint32_t duration = timer_elapsed32(tap_time);
             if (duration >= DIGITIZER_MOUSE_TAP_HOLD_TIME) {
-                gesture = NO_GESTURE;
+                gesture = UP;
                 return true;
             }
         }
         if (gesture == RIGHT_CLICK || gesture == MIDDLE_CLICK) {
-            gesture = NO_GESTURE;
+            gesture = UP;
             return true;
         }
     }
@@ -322,8 +336,14 @@ static void update_mouse_report(report_digitizer_t *report) {
             contact_start_y    = y;
         }
 
-        if (contacts == 1 && gesture == POSSIBLE_TAP) {
-            gesture = HOLD;
+        if (contacts == 1) {
+            if (gesture == POSSIBLE_TAP) {
+                gesture = PAUSE;
+                tap_time = timer_read32();
+            }
+            else if (gesture == NO_GESTURE) {
+                gesture = DOWN;
+            }
         }
 
         if (gesture == SWIPE) {
@@ -337,6 +357,11 @@ static void update_mouse_report(report_digitizer_t *report) {
 
         const int32_t distance_x = x - contact_start_x;
         const int32_t distance_y = y - contact_start_y;
+
+        if (gesture == DOWN && (duration > DIGITIZER_MOUSE_TAP_TIME || abs(distance_x) > DIGITIZER_MOUSE_TAP_DISTANCE || abs(distance_y) > DIGITIZER_MOUSE_TAP_DISTANCE)) {
+            // Left click
+            gesture  = NO_GESTURE;
+        }
 
         switch (contacts) {
             case 0: {
@@ -353,7 +378,7 @@ static void update_mouse_report(report_digitizer_t *report) {
                     } else if (max_contacts == 3) {
                         gesture  = MIDDLE_CLICK;
                         tap_time = timer_read32();
-                    } else if (abs(distance_x) < DIGITIZER_MOUSE_TAP_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_TAP_DISTANCE) {
+                    } else if (abs(distance_x) <= DIGITIZER_MOUSE_TAP_DISTANCE && abs(distance_y) <= DIGITIZER_MOUSE_TAP_DISTANCE) {
                         // Left click
                         gesture  = POSSIBLE_TAP;
                         tap_time = timer_read32();
@@ -362,7 +387,11 @@ static void update_mouse_report(report_digitizer_t *report) {
                 break;
             }
             case 1:
-                if (report->fingers[0].tip && last_tip) {
+                if (gesture == PAUSE && (duration > DIGITIZER_MOUSE_TAP_TIME || abs(distance_x) > DIGITIZER_MOUSE_TAP_DISTANCE || abs(distance_y) > DIGITIZER_MOUSE_TAP_DISTANCE)) {
+                    // Left click
+                    gesture  = HOLD;
+                }
+                if (gesture != POSSIBLE_TAP && gesture != UP && gesture != DOWN && gesture != PAUSE && report->fingers[0].tip && last_tip) {
                     mouse_report.x = x - last_x;
                     mouse_report.y = y - last_y;
                 }
@@ -414,6 +443,10 @@ static void update_mouse_report(report_digitizer_t *report) {
     }
     if (report->button3 || gesture == MIDDLE_CLICK) {
         mouse_report.buttons |= 0x4;
+    }
+
+    if (gesture == UP) {
+        gesture = NO_GESTURE;
     }
 
     last_x   = x;
