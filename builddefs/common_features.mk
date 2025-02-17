@@ -189,6 +189,7 @@ ifeq ($(strip $(DIGITIZER_ENABLE)), yes)
     else
         OPT_DEFS += -DDIGITIZER_ENABLE
         SRC += $(QUANTUM_DIR)/digitizer.c
+        SRC += $(QUANTUM_DIR)/digitizer_mouse_fallback.c
         ifeq ($(filter $(strip $(DIGITIZER_DRIVER)),custom none),)
             SRC += drivers/sensors/$(strip $(DIGITIZER_DRIVER)).c
             OPT_DEFS += -DDIGITIZER_DRIVER_$(strip $(shell echo $(DIGITIZER_DRIVER) | tr '[:lower:]' '[:upper:]'))
