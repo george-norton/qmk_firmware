@@ -32,6 +32,11 @@
 #    define DIGITIZER_MOUSE_SWIPE_THRESHOLD 300
 #endif
 
+#ifndef DIGITIZER_REPORT_TAPS_AS_CLICKS
+#    define DIGITIZER_REPORT_TAPS_AS_CLICKS false
+#endif
+
+bool                  digitizer_taps_as_clicks = DIGITIZER_REPORT_TAPS_AS_CLICKS;
 bool                  digitizer_send_mouse_reports = true;
 static report_mouse_t mouse_report                 = {};
 
@@ -53,11 +58,14 @@ const pointing_device_driver_t digitizer_pointing_device_driver = {.init = NULL,
  * @return report_mouse_t
  */
  static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report) {
-    report_mouse_t report = mouse_report;
-    // Retain the button state, but drop any motion.
-    memset(&mouse_report, 0, sizeof(report_mouse_t));
-    mouse_report.buttons = report.buttons;
-    return report;
+    if (digitizer_send_mouse_reports) {
+        report_mouse_t report = mouse_report;
+        // Retain the button state, but drop any motion.
+        memset(&mouse_report, 0, sizeof(report_mouse_t));
+        mouse_report.buttons = report.buttons;
+        return report;
+    }
+    return _mouse_report;
 }
 
 static uint16_t mouse_cpi = 400;
@@ -248,12 +256,15 @@ void update_mouse_report(report_digitizer_t *report) {
     const bool button_pressed = tap || (state == Drag);
     if (report->button1 || (tap_contacts == 1 && button_pressed)) {
         mouse_report.buttons |= 0x1;
+        if (digitizer_taps_as_clicks) report->button1 = 1;
     }
     if (report->button2 || (tap_contacts == 2 && button_pressed)) {
         mouse_report.buttons |= 0x2;
+        if (digitizer_taps_as_clicks) report->button2 = 1;
     }
     if (report->button3 || (tap_contacts == 3 && button_pressed)) {
         mouse_report.buttons |= 0x4;
+        if (digitizer_taps_as_clicks) report->button3 = 1;
     }
     last_contacts = contacts;
     last_x = x;

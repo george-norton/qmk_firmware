@@ -204,7 +204,7 @@ bool digitizer_task(void) {
     last_exec = timer_read32();
 #endif
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
-    gesture_changed = digitizer_send_mouse_reports && update_gesture_state();
+    gesture_changed = update_gesture_state();
 #endif
 
 #if defined(DIGITIZER_MOTION_PIN)
@@ -293,12 +293,9 @@ bool digitizer_task(void) {
 #endif
     if (report.contact_count || button_state_changed || gesture_changed) {
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
-        if (digitizer_send_mouse_reports) {
-            update_mouse_report(&report);
-        }
-        else
+        update_mouse_report(&report);
 #endif
-        {
+        if (!digitizer_send_mouse_reports) {
             host_digitizer_send(&report);
         }
     }
