@@ -823,7 +823,7 @@ static void digitizer_handlers_slave(matrix_row_t master_matrix[], matrix_row_t 
 #    endif
 
     split_slave_digitizer_sync_t digitizer = {};
-    digitizer.report                       = digitizer_get_report();
+    digitizer.report                       = digitizer_get_state();
 
     // Now update the checksum given that the digitizer report has been written to
     digitizer.checksum = crc8(&digitizer.report, sizeof(digitizer_t));
