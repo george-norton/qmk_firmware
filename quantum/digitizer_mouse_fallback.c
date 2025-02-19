@@ -32,11 +32,12 @@
 #    define DIGITIZER_MOUSE_SWIPE_THRESHOLD 300
 #endif
 
-#ifndef DIGITIZER_REPORT_TAPS_AS_CLICKS
-#    define DIGITIZER_REPORT_TAPS_AS_CLICKS false
+#ifdef DIGITIZER_REPORT_TAPS_AS_CLICKS
+    bool digitizer_taps_as_clicks = true;
+#else
+    bool digitizer_taps_as_clicks = false;
 #endif
 
-bool                  digitizer_taps_as_clicks = DIGITIZER_REPORT_TAPS_AS_CLICKS;
 bool                  digitizer_send_mouse_reports = true;
 static report_mouse_t mouse_report                 = {};
 
