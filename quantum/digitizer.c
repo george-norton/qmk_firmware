@@ -208,7 +208,7 @@ bool digitizer_task(void) {
 #endif
 
 #if defined(DIGITIZER_MOTION_PIN)
-    if (gesture_changed || digitizer_motion_detected())
+    if (digitizer_motion_detected())
 #endif
     {
 #if defined(SPLIT_DIGITIZER_ENABLE)
@@ -270,22 +270,6 @@ bool digitizer_task(void) {
         digitizer_state = driver_state;
     }
 
-#if DIGITIZER_CONTACT_COUNT > 0
-    static uint32_t scan_time = 0;
-
-    // Reset the scan_time after a period of inactivity (1000ms with no contacts)
-    static uint32_t inactivity_timer = 0;
-    if (last_contacts == 0 && contacts && timer_elapsed32(inactivity_timer) > 1000) {
-        scan_time = timer_read32();
-    }
-    inactivity_timer = timer_read32();
-    last_contacts    = contacts;
-
-    // Microsoft require we report in 100us ticks. TODO: Move.
-    uint32_t scan    = timer_elapsed32(scan_time);
-    report.scan_time = scan * 10;
-#endif
-
 #ifdef DIGITIZER_HAS_STYLUS
     if (updated_stylus) {
         host_digitizer_stylus_send(&stylus_report);
@@ -295,7 +279,22 @@ bool digitizer_task(void) {
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
         update_mouse_report(&report);
 #endif
-        if (!digitizer_send_mouse_reports) {
+        if (!digitizer_send_mouse_reports && (report.contact_count || button_state_changed)) {
+#if DIGITIZER_CONTACT_COUNT > 0
+            static uint32_t scan_time = 0;
+
+            // Reset the scan_time after a period of inactivity (1000ms with no contacts)
+            static uint32_t inactivity_timer = 0;
+            if (last_contacts == 0 && contacts && timer_elapsed32(inactivity_timer) > 1000) {
+                scan_time = timer_read32();
+            }
+            inactivity_timer = timer_read32();
+            last_contacts    = contacts;
+
+            // Microsoft require we report in 100us ticks. TODO: Move.
+            uint32_t scan    = timer_elapsed32(scan_time);
+            report.scan_time = scan * 10;
+#endif
             host_digitizer_send(&report);
         }
     }
