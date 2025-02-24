@@ -195,6 +195,7 @@ bool digitizer_task(void) {
     int  contacts             = 0;
     bool gesture_changed      = false;
     bool button_state_changed = false;
+    bool report_changed       = false;
 
 #if DIGITIZER_TASK_THROTTLE_MS
     static uint32_t last_exec = 0;
@@ -205,6 +206,7 @@ bool digitizer_task(void) {
 #endif
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
     gesture_changed = update_gesture_state();
+    static report_digitizer_t last_report = { 0 };
 #endif
 
 #if defined(DIGITIZER_MOTION_PIN)
@@ -268,6 +270,7 @@ bool digitizer_task(void) {
 #endif
         }
         digitizer_state = driver_state;
+        report_changed = true;
     }
 
 #ifdef DIGITIZER_HAS_STYLUS
@@ -277,7 +280,12 @@ bool digitizer_task(void) {
 #endif
     if (report.contact_count || button_state_changed || gesture_changed) {
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
-        update_mouse_report(&report);
+        if (report_changed) {
+            update_mouse_report(&report);
+            last_report = report;
+        } else {
+            update_mouse_report(&last_report);
+        }
 #endif
         if (!digitizer_send_mouse_reports && (report.contact_count || button_state_changed)) {
 #if DIGITIZER_CONTACT_COUNT > 0
