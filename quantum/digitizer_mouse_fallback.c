@@ -13,7 +13,7 @@
 #endif
 
 #ifndef DIGITIZER_MOUSE_TAP_DISTANCE
-#    define DIGITIZER_MOUSE_TAP_DISTANCE 15
+#    define DIGITIZER_MOUSE_TAP_DISTANCE 25
 #endif
 
 #ifndef DIGITIZER_SCROLL_DIVISOR
@@ -192,6 +192,7 @@ void update_mouse_report(report_digitizer_t *report) {
         }
         case DoubleTapped:
         case Tapped: {
+            tap_contacts = MAX(contacts, tap_contacts);
             if (contacts == 0 && last_contacts != contacts) {
                 tap_count ++;
                 state = DoubleTapped;
@@ -201,8 +202,8 @@ void update_mouse_report(report_digitizer_t *report) {
                 if (contacts > 0 && state == Tapped) {
                     state = Drag;
                 } else {
-                    state = Finished;
                     tap_count ++;
+                    state = Finished;
                 }
             }
             break;

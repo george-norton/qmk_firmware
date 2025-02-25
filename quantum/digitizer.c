@@ -281,8 +281,8 @@ bool digitizer_task(void) {
     if (report.contact_count || button_state_changed || gesture_changed) {
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
         if (report_changed) {
-            update_mouse_report(&report);
             last_report = report;
+            update_mouse_report(&report);
         } else {
             update_mouse_report(&last_report);
         }
