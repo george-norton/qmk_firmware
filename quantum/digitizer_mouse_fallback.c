@@ -156,7 +156,7 @@ void update_mouse_report(report_digitizer_t *report) {
                 state = Tapped;
                 contact_start_time = timer_read32();
             }
-            else if (contacts >= 3) {
+            else if (contacts >= 3 && digitizer_send_mouse_reports) {
                 state = Swipe;
             }
             else if (   duration > DIGITIZER_MOUSE_TAP_TIME ||
@@ -174,7 +174,7 @@ void update_mouse_report(report_digitizer_t *report) {
             else if (contacts == 1) {
                 mouse_report.x = x - last_x;
                 mouse_report.y = y - last_y;
-            } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIME) {
+            } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIME && digitizer_send_mouse_reports) {
                 state = Swipe;
             } else {
                 static int carry_h = 0;
