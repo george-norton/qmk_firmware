@@ -1,18 +1,4 @@
-/* Copyright 2021
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// SPDX-License-Identifier: GPL-2.0-or-lateraa
 #include <stdlib.h>
 #include "digitizer.h"
 #include "digitizer_mouse_fallback.h"
@@ -205,7 +191,7 @@ bool digitizer_task(void) {
     last_exec = timer_read32();
 #endif
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
-    gesture_changed = update_gesture_state();
+    gesture_changed = digitizer_update_gesture_state();
     static report_digitizer_t last_report = { 0 };
 #endif
 
@@ -280,11 +266,14 @@ bool digitizer_task(void) {
 #endif
     if (report.contact_count || button_state_changed || gesture_changed) {
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
+        // We may get here because we read a new digitizer report, or because
+        // a timeout on a gesture occured. If a timeout occured use the last known
+        // digitizer state. Otherwise send the new state for processing.
         if (report_changed) {
             last_report = report;
-            update_mouse_report(&report);
+            digitizer_update_mouse_report(&report);
         } else {
-            update_mouse_report(&last_report);
+            digitizer_update_mouse_report(&last_report);
         }
 #endif
         if (!digitizer_send_mouse_reports && (report.contact_count || button_state_changed)) {

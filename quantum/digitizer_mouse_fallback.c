@@ -1,5 +1,7 @@
-#if defined(POINTING_DEVICE_DRIVER_digitizer)
+// SPDX-License-Identifier: GPL-2.0-or-later
+ #if defined(POINTING_DEVICE_DRIVER_digitizer)
 
+// We can fallback to reporting as a mouse for hosts which do not implement trackpad support.
 
 #include <stdlib.h>
 #include "digitizer.h"
@@ -32,12 +34,32 @@
 #    define DIGITIZER_MOUSE_SWIPE_THRESHOLD 300
 #endif
 
+#ifndef DIGITIZER_SWIPE_LEFT_KC
+#    define DIGITIZER_SWIPE_LEFT_KC QK_MOUSE_BUTTON_3
+#endif
+
+#ifndef DIGITIZER_SWIPE_RIGHT_KC
+#    define DIGITIZER_SWIPE_RIGHT_KC QK_MOUSE_BUTTON_4
+#endif
+
+#ifndef DIGITIZER_SWIPE_UP_KC
+#    define DIGITIZER_SWIPE_UP_KC KC_LEFT_GUI
+#endif
+
+#ifndef DIGITIZER_SWIPE_DOWN_KC
+#    define DIGITIZER_SWIPE_DOWN_KC KC_ESC
+#endif
+
 #ifdef DIGITIZER_REPORT_TAPS_AS_CLICKS
     bool digitizer_taps_as_clicks = true;
 #else
     bool digitizer_taps_as_clicks = false;
 #endif
 
+// This variable indicates that we are sending mouse reports. It will be updated
+// during USB enumeration if the host sends a feature report indicating it supports
+// Microsofts Precision Trackpad protocol. This variable can also be modified by users
+// to force reporting as a mouse or as a digitizer.
 bool                  digitizer_send_mouse_reports = true;
 static report_mouse_t mouse_report                 = {};
 
@@ -46,11 +68,6 @@ static uint16_t       digitizer_get_cpi(void);
 static void           digitizer_set_cpi(uint16_t cpi);
 
 const pointing_device_driver_t digitizer_pointing_device_driver = {.init = NULL, .get_report = digitizer_get_mouse_report, .get_cpi = digitizer_get_cpi, .set_cpi = digitizer_set_cpi};
-
-//typedef enum { NO_GESTURE, DOWN, POSSIBLE_TAP, PAUSE, HOLD, RIGHT_CLICK, MIDDLE_CLICK, SWIPE, UP } gesture_state;
-
-//static gesture_state gesture  = NO_GESTURE;
-//static int           tap_time = 0;
 
 /**
  * @brief Gets the current digitizer mouse report, the pointing device feature will send this is we
@@ -89,6 +106,7 @@ static void digitizer_set_cpi(uint16_t cpi) {
     mouse_cpi = cpi;
 }
 
+// The gesture detection state machine will transition between these states.
 typedef enum {
     None,
     Down,
@@ -104,19 +122,20 @@ static State state = None;
 static int tap_count = 0;
 
 /**
- * \brief Internal utility for updating the gesture state once timeouts expire.
- * @return true if a timeout has expired and we should generate a gesture event.
+ * \brief Internal utility for ensuring the mouse report is updated when a gesture
+ * is in progress, even if no new digitizer data is available.
+ * @return true if update_mouse_report should run.
  */
-bool update_gesture_state(void) {
+bool digitizer_update_gesture_state(void) {
     return tap_count || state != None;
 }
 
-// We can fallback to reporting as a mouse for hosts which do not implement trackpad support
 /**
- * \brief Generate a mouse report from the digitizer report.
+ * \brief Generate a mouse report from the digitizer report. This function implements
+ * a state machine to detect gestures and handle them.
  * @param[in] report a new digitizer report
  */
-void update_mouse_report(report_digitizer_t *report) {
+void digitizer_update_mouse_report(report_digitizer_t *report) {
     static int contact_start_time = 0;
     static int contact_start_x    = 0;
     static int contact_start_y    = 0;
@@ -156,7 +175,7 @@ void update_mouse_report(report_digitizer_t *report) {
                 state = Tapped;
                 contact_start_time = timer_read32();
             }
-            else if (contacts >= 3 && digitizer_send_mouse_reports) {
+            else if (contacts >= 3) {
                 state = Swipe;
             }
             else if (   duration > DIGITIZER_MOUSE_TAP_TIME ||
@@ -174,7 +193,7 @@ void update_mouse_report(report_digitizer_t *report) {
             else if (contacts == 1) {
                 mouse_report.x = x - last_x;
                 mouse_report.y = y - last_y;
-            } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIME && digitizer_send_mouse_reports) {
+            } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIME) {
                 state = Swipe;
             } else {
                 static int carry_h = 0;
@@ -216,25 +235,25 @@ void update_mouse_report(report_digitizer_t *report) {
             } else if (duration > DIGITIZER_MOUSE_SWIPE_TIME) {
                 state = MoveScroll;
             }
-            else {
+            else if (digitizer_send_mouse_reports) {
                 if (distance_x > DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe right
-                    mouse_report.buttons |= 0x10;
+                    tap_code(DIGITIZER_SWIPE_RIGHT_KC);
                     state = Finished;
                 }
                 else if (distance_x < -DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe left
-                    mouse_report.buttons |= 0x8;
+                    tap_code(DIGITIZER_SWIPE_LEFT_KC);
                     state = Finished;
                 }
                 else if (distance_y > DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_x) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe down
-                    tap_code(KC_ESC);
+                    tap_code(DIGITIZER_SWIPE_DOWN_KC);
                     state = Finished;
                 }
                 else if (distance_y < -DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_x) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe up
-                    tap_code(KC_LEFT_GUI);
+                    tap_code(DIGITIZER_SWIPE_UP_KC);
                     state = Finished;
                 }
             }

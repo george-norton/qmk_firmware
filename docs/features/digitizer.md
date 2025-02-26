@@ -24,7 +24,7 @@ Since there is no display attached, the OS will likely map these coordinates to 
 
 ## Finger reports
 
-The host will interpert finger reports as gestures. Typically:
+The host will interpret finger reports as gestures. Typically:
 
 - A single finger moving will be interpreted as a relative mouse move
 - A short tap will be interpreted as a left click
@@ -48,27 +48,31 @@ If a host does not support USB trackpads (such as Mac-OS, or some KVMs) the Micr
 | `DIGITIZER_RESOLUTION_X`                       | (Optional) Set the logical maximum X value.                                                                                      | `1920`        |
 | `DIGITIZER_RESOLUTION_Y`                       | (Optional) Set the logical maximum Y value.                                                                                      | `1080`        |
 | `DIGITIZER_HAS_STYLUS`                         | (Optional) Configures whether or not stylus reporting is enabled.                                                                | `true`        |
-| `DIGITIZER_HAS_STYLUS`                         | (Optional) Configures whether or not stylus reporting is enabled.                                                                | `true`        |
 | `DIGITIZER_CONTACT_COUNT`                      | (Optional) Configures the maximum number of finger contacts we should report. Microsoft PTP devices should have between 3 and 5. | `0`           |
-| `DIGITIZER_TASK_THROTTLE_MS`                   | (Optional) Limits the frequency that the sensor is polled for motion.                                                            | _not defined_ |
-| `DIGITIZER_TOUCH_PAD`                          | (Optional) Causes the HID report to indicate the device is a Touch Pad.                                                          | _not defined_ |
-| `DIGITIZER_TOUCH_PAD`                          | (Optional) Causes the HID report to indicate the device is a Touch Pad.                                                          | _not defined_ |
-| `DIGITIZER_MOTION_PIN`                         | (Optional) If supported, will only read from sensor if pin is active.                                                            | _not defined_ |
+| `DIGITIZER_TASK_THROTTLE_MS`                   | (Optional) Limits the frequency that the sensor is polled for motion.                                                            | _not defined_      |
+| `DIGITIZER_TOUCH_PAD`                          | (Optional) Causes the HID report to indicate the device is a Touch Pad.                                                          | _not defined_      |
+| `DIGITIZER_MOTION_PIN`                         | (Optional) If supported, will only read from sensor if pin is active.                                                            | _not defined_      |
 | `DIGITIZER_MOTION_PIN_ACTIVE_LOW`              | (Optional) If defined then the motion pin is active-low.                                                                         | _varies_      |
+| `DIGITIZER_REPORT_TAPS_AS_CLICKS`              | (Optional) If defined then tap gestures from mouse fallback will also be reported in the digitizer report.                       | `False`       |
+
+The option `DIGITIZER_REPORT_TAPS_AS_CLICKS` is provided as most hosts do not provide per device configuration for trackpads. If you would like tap to click enabled on your QMK trackpad, but not on your laptops integrated trackpad, you can enable this.
 
 ## Mouse Fallback Configuration
 
 The mouse fallback gesture detection code can be tweaked with the following parameters. To use mouse fallback the `POINTING_DEVICE_DRIVER` should be set to `digitizer`.
 
 | Setting                                        | Description                                                                                                                      | Default       |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `DIGITIZER_MOUSE_TAP_TIME`                     | (Optional) The timeout in ms before a tap gesture is detected.                                                                   | `200`         |
-| `DIGITIZER_MOUSE_TAP_HOLD_TIME`                | (Optional) The timeout in ms before a tap hold gesture is detected.                                                              | `300`         |
-| `DIGITIZER_MOUSE_TAP_DISTANCE`                 | (Optional) The maximum distance a contact can move in an axis and still be detected as a tap.                                    | `15`          |
-| `DIGITIZER_SCROLL_DIVISOR`                     | (Optional) A scaling factor that is applied to reduce the speed of scroll reporting.                                             | `10`          |
-| `DIGITIZER_MOUSE_SWIPE_TIME`                   | (Optional) The timeout in ms before a swipe gesture is detected.                                                                 | `500`         |
-| `DIGITIZER_MOUSE_SWIPE_DISTANCE`               | (Optional) Minimum move distance required for a swipe to be detected.                                                            | `300`         |
-| `DIGITIZER_MOUSE_SWIPE_THRESHOLD`              | (Optional) Movements in the alternate axis must be less than this threshold for a swipe to be detected.                          | `100`         |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `DIGITIZER_MOUSE_TAP_TIME`                     | (Optional) The timeout in ms before a tap gesture is detected.                                                                   | `200`               |
+| `DIGITIZER_MOUSE_TAP_DISTANCE`                 | (Optional) The maximum distance a contact can move in an axis and still be detected as a tap.                                    | `25`                |
+| `DIGITIZER_SCROLL_DIVISOR`                     | (Optional) A scaling factor that is applied to reduce the speed of scroll reporting.                                             | `10`                |
+| `DIGITIZER_MOUSE_SWIPE_TIME`                   | (Optional) The timeout in ms before a swipe gesture is detected.                                                                 | `500`               |
+| `DIGITIZER_MOUSE_SWIPE_DISTANCE`               | (Optional) Minimum move distance required for a swipe to be detected.                                                            | `300`               |
+| `DIGITIZER_MOUSE_SWIPE_THRESHOLD`              | (Optional) Movements in the alternate axis must be less than this threshold for a swipe to be detected.                          | `100`               |
+| `DIGITIZER_SWIPE_LEFT_KC`                      | (Optional) The keycode to generate when a swipe left gesture is detected                                                         | `QK_MOUSE_BUTTON_3` |
+| `DIGITIZER_SWIPE_RIGHT_KC`                     | (Optional) The keycode to generate when a swipe right gesture is detected                                                        | `QK_MOUSE_BUTTON_4` |
+| `DIGITIZER_SWIPE_UP_KC`                        | (Optional) The keycode to generate when a swipe up gesture is detected                                                           | `KC_LEFT_GUI`       |
+| `DIGITIZER_SWIPE_DOWN_KC`                      | (Optional) The keycode to generate when a swipe down gesture is detected                                                         | `KC_ESC`            |
 
 ## Split Keyboard Configuration
 
