@@ -287,6 +287,9 @@
     "exclusive/e85": {
         "target": "exclusive/e85/hotswap"
     },
+    "georgen/peacock": {
+        "target": "georgen/peacock/v1_01"
+    },
     "gh60": {
         "target": "gh60/revc"
     },
