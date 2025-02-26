@@ -91,6 +91,10 @@ static const USBDescriptor *usb_get_descriptor_cb(USBDriver *usbp, uint8_t dtype
 
 #ifdef DIGITIZER_ENABLE
 extern bool digitizer_send_mouse_reports;
+
+#ifndef DIGITIZER_BUTTON_TYPE
+#    define DIGITIZER_BUTTON_TYPE 2
+#endif
 #endif
 
 /* ---------------------------------------------------------
@@ -295,8 +299,7 @@ static bool usb_requests_hook_cb(USBDriver *usbp) {
                                     // TODO: Mode switching - Windows precision touchpads should start up reporting as a mouse, then switch
                                     // to trackpad reports if we get asked. For now just ACK the message by sending back an empty packet
                                     // with our report id.
-                                    // TODO: What size should this buffer be?
-                                    uint8_t buffer[128] = {};
+                                    uint8_t buffer[64] = {};
                                     usbReadSetup(usbp, DIGITIZER_IN_EPNUM, buffer);
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
                                     if (buffer[3] == 0x3) {
@@ -305,13 +308,8 @@ static bool usb_requests_hook_cb(USBDriver *usbp) {
 #endif
                                     usbSetupTransfer(usbp, &(setup->wValue.lbyte), 1, NULL);
                                     return true;
-                                } else if (setup->wValue.hbyte == 0x3 && setup->wValue.lbyte == REPORT_ID_DIGITIZER_GET_FEATURE) {
-                                    // TODO: do hosts ever call set on the touchpad feature?
-                                    // For now just ACK the message by sending back an empty packet with our report id.
-                                    usbSetupTransfer(usbp, &(setup->wValue.lbyte), 1, NULL);
-                                    return true;
                                 } else if ((setup->wValue.hbyte == 0x3) && (setup->wValue.lbyte == REPORT_ID_DIGITIZER)) {
-                                    uint8_t response[] = {REPORT_ID_DIGITIZER, 2};
+                                    uint8_t response[] = {REPORT_ID_DIGITIZER, DIGITIZER_BUTTON_TYPE};
                                     usbSetupTransfer(usbp, response, 5, NULL);
                                     return true;
                                 }
