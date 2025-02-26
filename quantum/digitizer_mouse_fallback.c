@@ -122,8 +122,8 @@ static State state = None;
 static int tap_count = 0;
 
 /**
- * \brief Internal utility for ensuring the mouse report is updated when a gesture
- * is in progress, even if no new digitizer data is available.
+ * \brief Signals that a gesture is in progress so digitizer_update_mouse_report should be called,
+ * even if no new digitizer data is available.
  * @return true if update_mouse_report should run.
  */
 bool digitizer_update_gesture_state(void) {
