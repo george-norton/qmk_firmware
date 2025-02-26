@@ -1,4 +1,18 @@
-// SPDX-License-Identifier: GPL-2.0-or-lateraa
+/* Copyright 2021
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include <stdlib.h>
 #include "digitizer.h"
 #include "digitizer_mouse_fallback.h"
@@ -181,7 +195,6 @@ bool digitizer_task(void) {
     int  contacts             = 0;
     bool gesture_changed      = false;
     bool button_state_changed = false;
-    bool report_changed       = false;
 
 #if DIGITIZER_TASK_THROTTLE_MS
     static uint32_t last_exec = 0;
@@ -193,6 +206,7 @@ bool digitizer_task(void) {
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
     gesture_changed = digitizer_update_gesture_state();
     static report_digitizer_t last_report = { 0 };
+    bool report_changed = false;
 #endif
 
 #if defined(DIGITIZER_MOTION_PIN)
@@ -256,7 +270,10 @@ bool digitizer_task(void) {
 #endif
         }
         digitizer_state = driver_state;
+
+#if defined(POINTING_DEVICE_DRIVER_digitizer)
         report_changed = true;
+#endif
     }
 
 #ifdef DIGITIZER_HAS_STYLUS
@@ -275,25 +292,29 @@ bool digitizer_task(void) {
         } else {
             digitizer_update_mouse_report(&last_report);
         }
+        if (!digitizer_send_mouse_reports) {
 #endif
-        if (!digitizer_send_mouse_reports && (report.contact_count || button_state_changed)) {
+            if (report.contact_count || button_state_changed) {
 #if DIGITIZER_CONTACT_COUNT > 0
-            static uint32_t scan_time = 0;
+                static uint32_t scan_time = 0;
 
-            // Reset the scan_time after a period of inactivity (1000ms with no contacts)
-            static uint32_t inactivity_timer = 0;
-            if (last_contacts == 0 && contacts && timer_elapsed32(inactivity_timer) > 1000) {
-                scan_time = timer_read32();
-            }
-            inactivity_timer = timer_read32();
-            last_contacts    = contacts;
+                // Reset the scan_time after a period of inactivity (1000ms with no contacts)
+                static uint32_t inactivity_timer = 0;
+                if (last_contacts == 0 && contacts && timer_elapsed32(inactivity_timer) > 1000) {
+                    scan_time = timer_read32();
+                }
+                inactivity_timer = timer_read32();
+                last_contacts    = contacts;
 
-            // Microsoft require we report in 100us ticks. TODO: Move.
-            uint32_t scan    = timer_elapsed32(scan_time);
-            report.scan_time = scan * 10;
+                // Microsoft require we report in 100us ticks.
+                uint32_t scan    = timer_elapsed32(scan_time);
+                report.scan_time = scan * 10;
 #endif
-            host_digitizer_send(&report);
+                host_digitizer_send(&report);
+            }
+#if defined(POINTING_DEVICE_DRIVER_digitizer)
         }
+#endif
     }
 
 #ifdef DIGITIZER_HAS_STYLUS
