@@ -40,7 +40,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
+void digitizer_init_kb() {
+    timer = timer_read32();
+}
+
 digitizer_t digitizer_task_kb(digitizer_t digitizer_state) {
+    // Libinput suppresses a touch that starts too soon after device enumeration,
+    // so delay our drag event.
+    static bool startup_wait = true;
+    if (startup_wait && timer_elapsed32(timer) < 1000) {
+        return digitizer_state;
+    }
+    startup_wait = false;
+
     // If the time between events is too great, it is not treated
     // as a series of taps rather than a continuous movement.
     if (timer_elapsed32(timer) < 10) {

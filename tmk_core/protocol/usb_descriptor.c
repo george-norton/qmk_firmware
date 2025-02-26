@@ -379,11 +379,11 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
 #    endif
 #    if DIGITIZER_CONTACT_COUNT > 3
         DIGITIZER_FINGER_REPORT,
-#endif
+#    endif
 #    if DIGITIZER_CONTACT_COUNT > 4
         DIGITIZER_FINGER_REPORT,
-#endif
-#if DIGITIZER_CONTACT_COUNT > 0
+#    endif
+#    if DIGITIZER_CONTACT_COUNT > 0
         HID_RI_PUSH(0),
         HID_RI_UNIT_EXPONENT(8, 0x0C),  // -4
         HID_RI_UNIT(16, 0x1001),        // Seconds, SI Linear
@@ -416,7 +416,7 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
         HID_RI_REPORT_SIZE(8, 0x01),
         HID_RI_REPORT_COUNT(8, 0x01),
         HID_RI_INPUT(8, HID_IOF_CONSTANT),
-#ifndef DIGITIZER_EXCLUDE_FEATURE_REPORTS
+        #ifndef DIGITIZER_EXCLUDE_FEATURE_REPORTS
         HID_RI_USAGE_PAGE(8, 0x0D),    // Digitizers
         HID_RI_REPORT_ID(8, REPORT_ID_DIGITIZER_GET_FEATURE),
         HID_RI_USAGE(8, 0x55),         // Contact Count Maximum
@@ -474,7 +474,7 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
         HID_RI_FEATURE(8, HID_IOF_CONSTANT | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
         HID_RI_POP(0),
         HID_RI_END_COLLECTION(0),
-#endif
+#        endif
 #    endif
     HID_RI_END_COLLECTION(0),
 #    ifndef DIGITIZER_SHARED_EP
