@@ -296,10 +296,6 @@ enum usb_endpoints {
 #define CDC_NOTIFICATION_EPSIZE 8
 #define CDC_EPSIZE 16
 #define JOYSTICK_EPSIZE 8
-#if DIGITIZER_CONTACT_COUNT > 0
-#    define DIGITIZER_EPSIZE 64
-#else
-#    define DIGITIZER_EPSIZE 8
-#endif
+#define DIGITIZER_EPSIZE 64
 
 uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const uint16_t wLength, const void** const DescriptorAddress);
