@@ -62,7 +62,7 @@ typedef struct {
 #    include "drivers/sensors/cirque_pinnacle.h"
 #    include "pointing_device_gestures.h"
 #elif defined(POINTING_DEVICE_DRIVER_digitizer)
-    const pointing_device_driver_t digitizer_pointing_device_driver;
+#    include "digitizer_mouse_fallback.h"
 #elif defined(POINTING_DEVICE_DRIVER_paw3204)
 #    include "drivers/sensors/paw3204.h"
 #    define POINTING_DEVICE_MOTION_PIN_ACTIVE_LOW

@@ -178,7 +178,6 @@ __attribute__((weak)) bool digitizer_motion_detected(void) {
 }
 #endif
 
-
 /**
  * \brief Task processing routine for the digitizer feature. This function polls the digitizer hardware
  * and sends events to the host as required.
@@ -186,7 +185,7 @@ __attribute__((weak)) bool digitizer_motion_detected(void) {
  * \return true if a new event was sent
  */
 bool digitizer_task(void) {
-    report_digitizer_t report        = {.fingers = {}, .contact_count = 0, .scan_time = 0, .button1 = digitizer_state.button1, .button2 = digitizer_state.button2, .button3 = digitizer_state.button3};
+    report_digitizer_t report = {.fingers = {}, .contact_count = 0, .scan_time = 0, .button1 = digitizer_state.button1, .button2 = digitizer_state.button2, .button3 = digitizer_state.button3};
 #if defined(DIGITIZER_HAS_STYLUS)
     report_digitizer_stylus_t stylus_report  = {};
     bool                      updated_stylus = false;
@@ -203,9 +202,9 @@ bool digitizer_task(void) {
     last_exec = timer_read32();
 #endif
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
-    gesture_changed = digitizer_update_gesture_state();
-    static report_digitizer_t last_report = { 0 };
-    bool report_changed = false;
+    gesture_changed                          = digitizer_update_gesture_state();
+    static report_digitizer_t last_report    = {0};
+    bool                      report_changed = false;
 #endif
 
 #if defined(DIGITIZER_MOTION_PIN)
@@ -296,7 +295,7 @@ bool digitizer_task(void) {
 #endif
             if (report.contact_count || button_state_changed) {
 #if DIGITIZER_FINGER_COUNT > 0
-                static uint32_t scan_time = 0;
+                static uint32_t scan_time     = 0;
                 static int      last_contacts = 0;
 
                 // Reset the scan_time after a period of inactivity (1000ms with no contacts)

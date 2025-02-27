@@ -1,60 +1,60 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
- #if defined(POINTING_DEVICE_DRIVER_digitizer)
+#if defined(POINTING_DEVICE_DRIVER_digitizer)
 
 // We can fallback to reporting as a mouse for hosts which do not implement trackpad support.
 
-#include <stdlib.h>
-#include "digitizer.h"
-#include "pointing_device.h"
-#include "debug.h"
-#include "timer.h"
-#include "action.h"
+#    include <stdlib.h>
+#    include "digitizer.h"
+#    include "digitizer_mouse_fallback.h"
+#    include "debug.h"
+#    include "timer.h"
+#    include "action.h"
 
-#ifndef DIGITIZER_MOUSE_TAP_TIME
-#    define DIGITIZER_MOUSE_TAP_TIME 200
-#endif
+#    ifndef DIGITIZER_MOUSE_TAP_TIME
+#        define DIGITIZER_MOUSE_TAP_TIME 200
+#    endif
 
-#ifndef DIGITIZER_MOUSE_TAP_DISTANCE
-#    define DIGITIZER_MOUSE_TAP_DISTANCE 25
-#endif
+#    ifndef DIGITIZER_MOUSE_TAP_DISTANCE
+#        define DIGITIZER_MOUSE_TAP_DISTANCE 25
+#    endif
 
-#ifndef DIGITIZER_SCROLL_DIVISOR
-#    define DIGITIZER_SCROLL_DIVISOR 10
-#endif
+#    ifndef DIGITIZER_SCROLL_DIVISOR
+#        define DIGITIZER_SCROLL_DIVISOR 10
+#    endif
 
-#ifndef DIGITIZER_MOUSE_SWIPE_TIME
-#    define DIGITIZER_MOUSE_SWIPE_TIME 1000
-#endif
+#    ifndef DIGITIZER_MOUSE_SWIPE_TIME
+#        define DIGITIZER_MOUSE_SWIPE_TIME 1000
+#    endif
 
-#ifndef DIGITIZER_MOUSE_SWIPE_DISTANCE
-#    define DIGITIZER_MOUSE_SWIPE_DISTANCE 500
-#endif
+#    ifndef DIGITIZER_MOUSE_SWIPE_DISTANCE
+#        define DIGITIZER_MOUSE_SWIPE_DISTANCE 500
+#    endif
 
-#ifndef DIGITIZER_MOUSE_SWIPE_THRESHOLD
-#    define DIGITIZER_MOUSE_SWIPE_THRESHOLD 300
-#endif
+#    ifndef DIGITIZER_MOUSE_SWIPE_THRESHOLD
+#        define DIGITIZER_MOUSE_SWIPE_THRESHOLD 300
+#    endif
 
-#ifndef DIGITIZER_SWIPE_LEFT_KC
-#    define DIGITIZER_SWIPE_LEFT_KC QK_MOUSE_BUTTON_3
-#endif
+#    ifndef DIGITIZER_SWIPE_LEFT_KC
+#        define DIGITIZER_SWIPE_LEFT_KC QK_MOUSE_BUTTON_3
+#    endif
 
-#ifndef DIGITIZER_SWIPE_RIGHT_KC
-#    define DIGITIZER_SWIPE_RIGHT_KC QK_MOUSE_BUTTON_4
-#endif
+#    ifndef DIGITIZER_SWIPE_RIGHT_KC
+#        define DIGITIZER_SWIPE_RIGHT_KC QK_MOUSE_BUTTON_4
+#    endif
 
-#ifndef DIGITIZER_SWIPE_UP_KC
-#    define DIGITIZER_SWIPE_UP_KC KC_LEFT_GUI
-#endif
+#    ifndef DIGITIZER_SWIPE_UP_KC
+#        define DIGITIZER_SWIPE_UP_KC KC_LEFT_GUI
+#    endif
 
-#ifndef DIGITIZER_SWIPE_DOWN_KC
-#    define DIGITIZER_SWIPE_DOWN_KC KC_ESC
-#endif
+#    ifndef DIGITIZER_SWIPE_DOWN_KC
+#        define DIGITIZER_SWIPE_DOWN_KC KC_ESC
+#    endif
 
-#ifdef DIGITIZER_REPORT_TAPS_AS_CLICKS
-    bool digitizer_taps_as_clicks = true;
-#else
-    bool digitizer_taps_as_clicks = false;
-#endif
+#    ifdef DIGITIZER_REPORT_TAPS_AS_CLICKS
+bool digitizer_taps_as_clicks = true;
+#    else
+bool digitizer_taps_as_clicks = false;
+#    endif
 
 // This variable indicates that we are sending mouse reports. It will be updated
 // during USB enumeration if the host sends a feature report indicating it supports
@@ -75,7 +75,7 @@ const pointing_device_driver_t digitizer_pointing_device_driver = {.init = NULL,
  *
  * @return report_mouse_t
  */
- static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report) {
+static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report) {
     if (digitizer_send_mouse_reports) {
         report_mouse_t report = mouse_report;
         // Retain the button state, but drop any motion.
@@ -107,19 +107,10 @@ static void digitizer_set_cpi(uint16_t cpi) {
 }
 
 // The gesture detection state machine will transition between these states.
-typedef enum {
-    None,
-    Down,
-    MoveScroll,
-    Tapped,
-    DoubleTapped,
-    Drag,
-    Swipe,
-    Finished
-} State;
+typedef enum { None, Down, MoveScroll, Tapped, DoubleTapped, Drag, Swipe, Finished } State;
 
-static State state = None;
-static int tap_count = 0;
+static State state     = None;
+static int   tap_count = 0;
 
 /**
  * \brief Signals that a gesture is in progress so digitizer_update_mouse_report should be called,
@@ -136,17 +127,17 @@ bool digitizer_update_gesture_state(void) {
  * @param[in] report a new digitizer report
  */
 void digitizer_update_mouse_report(report_digitizer_t *report) {
-    static int contact_start_time = 0;
-    static int contact_start_x    = 0;
-    static int contact_start_y    = 0;
-    static int tap_contacts       = 0;
-    static int last_contacts      = 0;
-    static uint16_t last_x        = 0;
-    static uint16_t last_y        = 0;
-    const uint16_t x              = report->fingers[0].x * (DIGITIZER_RESOLUTION_X / DIGITIZER_WIDTH_MM) / mouse_cpi;
-    const uint16_t y              = report->fingers[0].y * (DIGITIZER_RESOLUTION_Y / DIGITIZER_HEIGHT_MM) / mouse_cpi;
-    const uint32_t duration       = timer_elapsed32(contact_start_time);
-    int contacts                  = 0;
+    static int      contact_start_time = 0;
+    static int      contact_start_x    = 0;
+    static int      contact_start_y    = 0;
+    static int      tap_contacts       = 0;
+    static int      last_contacts      = 0;
+    static uint16_t last_x             = 0;
+    static uint16_t last_y             = 0;
+    const uint16_t  x                  = report->fingers[0].x * (DIGITIZER_RESOLUTION_X / DIGITIZER_WIDTH_MM) / mouse_cpi;
+    const uint16_t  y                  = report->fingers[0].y * (DIGITIZER_RESOLUTION_Y / DIGITIZER_HEIGHT_MM) / mouse_cpi;
+    const uint32_t  duration           = timer_elapsed32(contact_start_time);
+    int             contacts           = 0;
 
     memset(&mouse_report, 0, sizeof(report_mouse_t));
 
@@ -158,29 +149,25 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
     switch (state) {
         case None: {
             if (contacts != 0) {
-                state = Down;
+                state              = Down;
                 contact_start_time = timer_read32();
-                contact_start_x = x;
-                contact_start_y = y;
-                tap_contacts = contacts;
+                contact_start_x    = x;
+                contact_start_y    = y;
+                tap_contacts       = contacts;
             }
             break;
         }
         case Down: {
             const uint16_t distance_x = abs(contact_start_x - x);
             const uint16_t distance_y = abs(contact_start_y - y);
-            tap_contacts = MAX(contacts, tap_contacts);
+            tap_contacts              = MAX(contacts, tap_contacts);
 
             if (contacts == 0) {
-                state = Tapped;
+                state              = Tapped;
                 contact_start_time = timer_read32();
-            }
-            else if (contacts >= 3) {
+            } else if (contacts >= 3) {
                 state = Swipe;
-            }
-            else if (   duration > DIGITIZER_MOUSE_TAP_TIME ||
-                        distance_x > DIGITIZER_MOUSE_TAP_DISTANCE ||
-                        distance_y > DIGITIZER_MOUSE_TAP_DISTANCE) {
+            } else if (duration > DIGITIZER_MOUSE_TAP_TIME || distance_x > DIGITIZER_MOUSE_TAP_DISTANCE || distance_y > DIGITIZER_MOUSE_TAP_DISTANCE) {
                 state = MoveScroll;
             }
             break;
@@ -189,8 +176,7 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         case MoveScroll: {
             if (contacts == 0) {
                 state = None;
-            }
-            else if (contacts == 1) {
+            } else if (contacts == 1) {
                 mouse_report.x = x - last_x;
                 mouse_report.y = y - last_y;
             } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIME) {
@@ -213,15 +199,14 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         case Tapped: {
             tap_contacts = MAX(contacts, tap_contacts);
             if (contacts == 0 && last_contacts != contacts) {
-                tap_count ++;
-                state = DoubleTapped;
+                tap_count++;
+                state              = DoubleTapped;
                 contact_start_time = timer_read32();
-            }
-            else if (duration > DIGITIZER_MOUSE_TAP_TIME) {
+            } else if (duration > DIGITIZER_MOUSE_TAP_TIME) {
                 if (contacts > 0 && state == Tapped) {
                     state = Drag;
                 } else {
-                    tap_count ++;
+                    tap_count++;
                     state = Finished;
                 }
             }
@@ -234,24 +219,20 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
                 state = None;
             } else if (duration > DIGITIZER_MOUSE_SWIPE_TIME) {
                 state = MoveScroll;
-            }
-            else if (digitizer_send_mouse_reports) {
+            } else if (digitizer_send_mouse_reports) {
                 if (distance_x > DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe right
                     tap_code(DIGITIZER_SWIPE_RIGHT_KC);
                     state = Finished;
-                }
-                else if (distance_x < -DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
+                } else if (distance_x < -DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe left
                     tap_code(DIGITIZER_SWIPE_LEFT_KC);
                     state = Finished;
-                }
-                else if (distance_y > DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_x) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
+                } else if (distance_y > DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_x) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe down
                     tap_code(DIGITIZER_SWIPE_DOWN_KC);
                     state = Finished;
-                }
-                else if (distance_y < -DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_x) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
+                } else if (distance_y < -DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_x) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe up
                     tap_code(DIGITIZER_SWIPE_UP_KC);
                     state = Finished;
@@ -259,8 +240,7 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
             }
             break;
         }
-        case Finished:
-        {
+        case Finished: {
             if (contacts == 0) {
                 state = None;
             }
@@ -271,7 +251,7 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
     if (tap_count) {
         tap = !tap;
         if (!tap) {
-            tap_count --;
+            tap_count--;
         }
     }
     const bool button_pressed = tap || (state == Drag);
@@ -288,7 +268,7 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         if (digitizer_taps_as_clicks) report->button3 = 1;
     }
     last_contacts = contacts;
-    last_x = x;
-    last_y = y;
+    last_x        = x;
+    last_y        = y;
 }
 #endif
