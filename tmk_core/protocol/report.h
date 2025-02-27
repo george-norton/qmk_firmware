@@ -263,8 +263,8 @@ typedef struct {
 
 typedef struct {
     uint8_t report_id;
-#ifdef DIGITIZER_CONTACT_COUNT
-    digitizer_finger_report_t fingers[DIGITIZER_CONTACT_COUNT];
+#ifdef DIGITIZER_FINGER_COUNT
+    digitizer_finger_report_t fingers[DIGITIZER_FINGER_COUNT];
 #endif
     uint16_t scan_time;
     uint8_t  contact_count : 4;

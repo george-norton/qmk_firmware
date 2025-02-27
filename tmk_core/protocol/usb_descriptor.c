@@ -364,26 +364,26 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
         HID_RI_END_COLLECTION(0),
     HID_RI_END_COLLECTION(0),
 #    endif
-#    if DIGITIZER_CONTACT_COUNT > 0
+#    if DIGITIZER_FINGER_COUNT > 0
     HID_RI_USAGE_PAGE(8, 0x0D),            // Digitizers
     HID_RI_USAGE(8, 0x05),                 // Touchpad
     HID_RI_COLLECTION(8, 0x01),            // Application
         HID_RI_REPORT_ID(8, REPORT_ID_DIGITIZER),
         DIGITIZER_FINGER_REPORT,
 #endif
-#    if DIGITIZER_CONTACT_COUNT > 1
+#    if DIGITIZER_FINGER_COUNT > 1
         DIGITIZER_FINGER_REPORT,
 #    endif
-#    if DIGITIZER_CONTACT_COUNT > 2
+#    if DIGITIZER_FINGER_COUNT > 2
         DIGITIZER_FINGER_REPORT,
 #    endif
-#    if DIGITIZER_CONTACT_COUNT > 3
+#    if DIGITIZER_FINGER_COUNT > 3
         DIGITIZER_FINGER_REPORT,
 #    endif
-#    if DIGITIZER_CONTACT_COUNT > 4
+#    if DIGITIZER_FINGER_COUNT > 4
         DIGITIZER_FINGER_REPORT,
 #    endif
-#    if DIGITIZER_CONTACT_COUNT > 0
+#    if DIGITIZER_FINGER_COUNT > 0
         HID_RI_PUSH(0),
         HID_RI_UNIT_EXPONENT(8, 0x0C),  // -4
         HID_RI_UNIT(16, 0x1001),        // Seconds, SI Linear

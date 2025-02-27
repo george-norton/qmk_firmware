@@ -231,10 +231,10 @@ bool digitizer_task(void) {
         }
 
         int skip_count = 0;
-        for (int i = 0; i < DIGITIZER_CONTACT_COUNT; i++) {
+        for (int i = 0; i < DIGITIZER_FINGER_COUNT; i++) {
             // If this is a finger which is down, or it was on the last scan (but now it is up)..
             const bool    finger_contact = (tmp_state.contacts[i].type == FINGER && tmp_state.contacts[i].tip) || (digitizer_state.contacts[i].type == FINGER && digitizer_state.contacts[i].tip);
-            const uint8_t finger_index   = finger_contact ? report.contact_count : DIGITIZER_CONTACT_COUNT - skip_count - 1;
+            const uint8_t finger_index   = finger_contact ? report.contact_count : DIGITIZER_FINGER_COUNT - skip_count - 1;
 
             if (tmp_state.contacts[i].type != UNKNOWN) {
                 // 'contacts' is the number of current contacts wheras 'report->contact_count' also counts fingers which have
@@ -295,7 +295,7 @@ bool digitizer_task(void) {
         if (!digitizer_send_mouse_reports) {
 #endif
             if (report.contact_count || button_state_changed) {
-#if DIGITIZER_CONTACT_COUNT > 0
+#if DIGITIZER_FINGER_COUNT > 0
                 static uint32_t scan_time = 0;
 
                 // Reset the scan_time after a period of inactivity (1000ms with no contacts)
