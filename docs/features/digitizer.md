@@ -48,20 +48,23 @@ If a host does not support USB trackpads (such as Mac-OS, or some KVMs) the Micr
 | `DIGITIZER_RESOLUTION_X`                       | (Optional) Set the logical maximum X value.                                                                                      | `1920`        |
 | `DIGITIZER_RESOLUTION_Y`                       | (Optional) Set the logical maximum Y value.                                                                                      | `1080`        |
 | `DIGITIZER_HAS_STYLUS`                         | (Optional) Configures whether or not stylus reporting is enabled.                                                                | `true`        |
-| `DIGITIZER_CONTACT_COUNT`                      | (Optional) Configures the maximum number of finger contacts we should report. Microsoft PTP devices should have between 3 and 5. | `0`           |
-| `DIGITIZER_TASK_THROTTLE_MS`                   | (Optional) Limits the frequency that the sensor is polled for motion.                                                            | _not defined_      |
-| `DIGITIZER_TOUCH_PAD`                          | (Optional) Causes the HID report to indicate the device is a Touch Pad.                                                          | _not defined_      |
-| `DIGITIZER_MOTION_PIN`                         | (Optional) If supported, will only read from sensor if pin is active.                                                            | _not defined_      |
+| `DIGITIZER_FINGER_COUNT`                       | (Optional) Configures the maximum number of finger contacts we should report. Microsoft PTP devices should have between 3 and 5. | `0`           |
+| `DIGITIZER_CONTACT_COUNT`                      | (Optional) Configures the number of contacts reported by the sensor. This will include stylus, fingers and other types.          | `0`           |
+| `DIGITIZER_TASK_THROTTLE_MS`                   | (Optional) Limits the frequency that the sensor is polled for motion.                                                            | _not defined_ |
+| `DIGITIZER_TOUCH_PAD`                          | (Optional) Causes the HID report to indicate the device is a Touch Pad.                                                          | _not defined_ |
+| `DIGITIZER_MOTION_PIN`                         | (Optional) If supported, will only read from sensor if pin is active.                                                            | _not defined_ |
 | `DIGITIZER_MOTION_PIN_ACTIVE_LOW`              | (Optional) If defined then the motion pin is active-low.                                                                         | _varies_      |
 | `DIGITIZER_REPORT_TAPS_AS_CLICKS`              | (Optional) If defined then tap gestures from mouse fallback will also be reported in the digitizer report.                       | `False`       |
 
 The option `DIGITIZER_REPORT_TAPS_AS_CLICKS` is provided as most hosts do not provide per device configuration for trackpads. If you would like tap to click enabled on your QMK trackpad, but not on your laptops integrated trackpad, you can enable this.
 
+By default when reporting to the host, only the first `DIGITIZER_FINGER_COUNT` contacts will be considered, but additional contacts may be used by firmware to trigger custom behaviours (such as custom gestures).
+
 ## Mouse Fallback Configuration
 
 The mouse fallback gesture detection code can be tweaked with the following parameters. To use mouse fallback the `POINTING_DEVICE_DRIVER` should be set to `digitizer`.
 
-| Setting                                        | Description                                                                                                                      | Default       |
+| Setting                                        | Description                                                                                                                      | Default             |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `DIGITIZER_MOUSE_TAP_TIME`                     | (Optional) The timeout in ms before a tap gesture is detected.                                                                   | `200`               |
 | `DIGITIZER_MOUSE_TAP_DISTANCE`                 | (Optional) The maximum distance a contact can move in an axis and still be detected as a tap.                                    | `25`                |

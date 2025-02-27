@@ -150,7 +150,7 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
 
     memset(&mouse_report, 0, sizeof(report_mouse_t));
 
-    for (int i = 0; i < DIGITIZER_CONTACT_COUNT; i++) {
+    for (int i = 0; i < DIGITIZER_FINGER_COUNT; i++) {
         if (report->fingers[i].tip) {
             contacts++;
         }
