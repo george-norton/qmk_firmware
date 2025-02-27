@@ -370,7 +370,7 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
     HID_RI_COLLECTION(8, 0x01),            // Application
         HID_RI_REPORT_ID(8, REPORT_ID_DIGITIZER),
         DIGITIZER_FINGER_REPORT,
-#endif
+#    endif
 #    if DIGITIZER_FINGER_COUNT > 1
         DIGITIZER_FINGER_REPORT,
 #    endif

@@ -186,7 +186,6 @@ __attribute__((weak)) bool digitizer_motion_detected(void) {
  * \return true if a new event was sent
  */
 bool digitizer_task(void) {
-    static int         last_contacts = 0;
     report_digitizer_t report        = {.fingers = {}, .contact_count = 0, .scan_time = 0, .button1 = digitizer_state.button1, .button2 = digitizer_state.button2, .button3 = digitizer_state.button3};
 #if defined(DIGITIZER_HAS_STYLUS)
     report_digitizer_stylus_t stylus_report  = {};
@@ -297,6 +296,7 @@ bool digitizer_task(void) {
             if (report.contact_count || button_state_changed) {
 #if DIGITIZER_FINGER_COUNT > 0
                 static uint32_t scan_time = 0;
+                static int      last_contacts = 0;
 
                 // Reset the scan_time after a period of inactivity (1000ms with no contacts)
                 static uint32_t inactivity_timer = 0;

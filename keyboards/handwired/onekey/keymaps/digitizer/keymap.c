@@ -73,7 +73,7 @@ digitizer_t digitizer_task_kb(digitizer_t digitizer_state) {
     digitizer_state.contacts[0].x = x * DIGITIZER_RESOLUTION_X;
     digitizer_state.contacts[0].y = y * DIGITIZER_RESOLUTION_Y;
 
-    digitizer_state.contacts[0].tip = 0;
+    digitizer_state.contacts[0].tip = tip;
     digitizer_state.contacts[0].in_range = 1;
     digitizer_state.contacts[0].confidence = 1;
 
