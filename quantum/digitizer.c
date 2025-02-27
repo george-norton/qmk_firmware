@@ -226,6 +226,9 @@ bool digitizer_task(void) {
 
         if (digitizer_state.buttons != tmp_state.buttons) {
             button_state_changed = true;
+            report.button1 |= tmp_state.button1;
+            report.button2 |= tmp_state.button2;
+            report.button3 |= tmp_state.button3;
         }
 
         int skip_count = 0;
