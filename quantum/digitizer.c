@@ -230,27 +230,29 @@ bool digitizer_task(void) {
         }
 
         int skip_count = 0;
-        for (int i = 0; i < DIGITIZER_FINGER_COUNT; i++) {
+        for (int i = 0; i < DIGITIZER_CONTACT_COUNT; i++) {
             // If this is a finger which is down, or it was on the last scan (but now it is up)..
-            const bool    finger_contact = (tmp_state.contacts[i].type == FINGER && tmp_state.contacts[i].tip) || (digitizer_state.contacts[i].type == FINGER && digitizer_state.contacts[i].tip);
-            const uint8_t finger_index   = finger_contact ? report.contact_count : DIGITIZER_FINGER_COUNT - skip_count - 1;
+            if (i < DIGITIZER_FINGER_COUNT) {
+                const bool    finger_contact = (tmp_state.contacts[i].type == FINGER && tmp_state.contacts[i].tip) || (digitizer_state.contacts[i].type == FINGER && digitizer_state.contacts[i].tip);
+                const uint8_t finger_index   = finger_contact ? report.contact_count : DIGITIZER_FINGER_COUNT - skip_count - 1;
 
-            if (tmp_state.contacts[i].type != UNKNOWN) {
-                // 'contacts' is the number of current contacts wheras 'report->contact_count' also counts fingers which have
-                // been removed from the sensor since the last report.
-                contacts++;
+                if (tmp_state.contacts[i].type != UNKNOWN) {
+                    // 'contacts' is the number of current contacts wheras 'report->contact_count' also counts fingers which have
+                    // been removed from the sensor since the last report.
+                    contacts++;
+                }
+                if (finger_contact) {
+                    report.fingers[finger_index].tip = tmp_state.contacts[i].tip;
+                    report.contact_count++;
+                } else {
+                    skip_count++;
+                    report.fingers[finger_index].tip = false;
+                }
+                report.fingers[finger_index].contact_id = i;
+                report.fingers[finger_index].x          = tmp_state.contacts[i].x;
+                report.fingers[finger_index].y          = tmp_state.contacts[i].y;
+                report.fingers[finger_index].confidence = tmp_state.contacts[i].confidence;
             }
-            if (finger_contact) {
-                report.fingers[finger_index].tip = tmp_state.contacts[i].tip;
-                report.contact_count++;
-            } else {
-                skip_count++;
-                report.fingers[finger_index].tip = false;
-            }
-            report.fingers[finger_index].contact_id = i;
-            report.fingers[finger_index].x          = tmp_state.contacts[i].x;
-            report.fingers[finger_index].y          = tmp_state.contacts[i].y;
-            report.fingers[finger_index].confidence = tmp_state.contacts[i].confidence;
 #ifdef DIGITIZER_HAS_STYLUS
             if (tmp_state.contacts[i].type == STYLUS) {
                 updated_stylus         = true;
@@ -274,7 +276,6 @@ bool digitizer_task(void) {
         report_changed = true;
 #endif
     }
-
 #ifdef DIGITIZER_HAS_STYLUS
     if (updated_stylus) {
         host_digitizer_stylus_send(&stylus_report);
