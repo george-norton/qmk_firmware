@@ -18,7 +18,6 @@
 
 #include <math.h>
 #include "digitizer.h"
-#include "debug.h"
 
 enum custom_keycodes {
     DG_TIP = SAFE_RANGE,
@@ -64,12 +63,7 @@ digitizer_t digitizer_task_kb(digitizer_t digitizer_state) {
     float x = 0.5 - 0.2 * cos(timer / 250. / 6.28);
     float y = 0.5 - 0.2 * sin(timer / 250. / 6.28);
 
-    // TODO: This feels to complicated.
-#ifdef DIGITIZER_HAS_STYLUS
     digitizer_state.contacts[0].type = STYLUS;
-#else
-    digitizer_state.contacts[0].type = FINGER;
-#endif
     digitizer_state.contacts[0].x = x * DIGITIZER_RESOLUTION_X;
     digitizer_state.contacts[0].y = y * DIGITIZER_RESOLUTION_Y;
 

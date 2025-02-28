@@ -1,4 +1,6 @@
+// Copyright 2025 George Norton (@george-norton)
 // SPDX-License-Identifier: GPL-2.0-or-later
+
 #if defined(POINTING_DEVICE_DRIVER_digitizer)
 
 // We can fallback to reporting as a mouse for hosts which do not implement trackpad support.
