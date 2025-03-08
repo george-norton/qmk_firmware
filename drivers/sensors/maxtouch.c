@@ -329,7 +329,7 @@ void maxtouch_init(void) {
         t42.ctrl            = T42_CTRL_ENABLE | T42_CTRL_SHAPEEN;
         t42.maxapprarea     = 0; // Default (0): suppress any touch that approaches >40 channels.
         t42.maxtcharea      = 0; // Default (0): suppress any touch that covers >35 channels.
-        t42.maxnumtchs      = 6; // Suppress all touches if >6 are detected.
+        t42.maxnumtchs      = MAX(5, DIGITIZER_CONTACT_COUNT); // Suppress all touches more contacts than this are detected.
         t42.supdist         = 0; // Default (0): Suppress all touches within 5 nodes of a suppressed large object detection.
         t42.disthyst        = 0;
         t42.supstrength     = 0; // Default (0): suppression strength of 128.
@@ -478,7 +478,7 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
 #ifdef MAXTOUCH_BOOTLOADER_GESTURE
                     // Debug feature - reboot to bootloader if 5 fingers are MXT_DOWN
                     // TODO: A better gesture.
-                    if (fingers == 5) reset_keyboard();
+                    if (fingers == DIGITIZER_CONTACT_COUNT) reset_keyboard();
 #endif
                     if (fingers == 0) {
                         // Belt and braces, make sure we dont have any stuck contacts
