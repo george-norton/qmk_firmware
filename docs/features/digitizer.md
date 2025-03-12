@@ -66,10 +66,11 @@ The mouse fallback gesture detection code can be tweaked with the following para
 
 | Setting                                        | Description                                                                                                                      | Default             |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `DIGITIZER_MOUSE_TAP_TIME`                     | (Optional) The timeout in ms before a tap gesture is detected.                                                                   | `200`               |
+| `DIGITIZER_MOUSE_TAP_DETECTION_TIMEOUT`        | (Optional) The timeout in ms before a tap gesture is detected.                                                                   | `200`               |
+| `DIGITIZER_MOUSE_TAP_DURATION`                 | (Optional) The length of time each simulated button press is held for.                                                           | `1`                 |
 | `DIGITIZER_MOUSE_TAP_DISTANCE`                 | (Optional) The maximum distance a contact can move in an axis and still be detected as a tap.                                    | `25`                |
 | `DIGITIZER_SCROLL_DIVISOR`                     | (Optional) A scaling factor that is applied to reduce the speed of scroll reporting.                                             | `10`                |
-| `DIGITIZER_MOUSE_SWIPE_TIME`                   | (Optional) The timeout in ms before a swipe gesture is detected.                                                                 | `500`               |
+| `DIGITIZER_MOUSE_SWIPE_TIMEOUT`                | (Optional) The timeout in ms before a swipe gesture is detected.                                                                 | `500`               |
 | `DIGITIZER_MOUSE_SWIPE_DISTANCE`               | (Optional) Minimum move distance required for a swipe to be detected.                                                            | `300`               |
 | `DIGITIZER_MOUSE_SWIPE_THRESHOLD`              | (Optional) Movements in the alternate axis must be less than this threshold for a swipe to be detected.                          | `100`               |
 | `DIGITIZER_SWIPE_LEFT_KC`                      | (Optional) The keycode to generate when a swipe left gesture is detected                                                         | `QK_MOUSE_BUTTON_3` |
