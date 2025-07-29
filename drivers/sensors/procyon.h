@@ -52,7 +52,7 @@
 #ifdef PROCYON_57_80
 #    define MXT_SENSOR_WIDTH_MM 57
 #    define MXT_SENSOR_HEIGHT_MM 80
-#    define MXT_MATRIX_X_SIZE 12
+#    define MXT_MATRIX_X_SIZE 14
 #    define MXT_MATRIX_Y_SIZE 20
 #    define MXT_MESALLOW 3
 #endif
