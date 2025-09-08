@@ -56,11 +56,21 @@
 #        define DIGITIZER_SWIPE_DOWN_KC KC_ESC
 #    endif
 
+#    ifndef DIGITIZER_MIN_CPI
+#        define DIGITIZER_MIN_CPI 50
+#    endif
+
+#    ifndef DIGITIZER_MAX_CPI
+#        define DIGITIZER_MAX_CPI 1200
+#    endif
+
 #    ifdef DIGITIZER_REPORT_TAPS_AS_CLICKS
 bool digitizer_taps_as_clicks = true;
 #    else
 bool digitizer_taps_as_clicks = false;
 #    endif
+
+#define CLIP(X, A, B) (X<A ? A : X>B ? B : X)
 
 // This variable indicates that we are sending mouse reports. It will be updated
 // during USB enumeration if the host sends a feature report indicating it supports
@@ -109,7 +119,8 @@ static uint16_t digitizer_get_cpi(void) {
  *  @param[in] the new CPI value
  */
 static void digitizer_set_cpi(uint16_t cpi) {
-    mouse_cpi = cpi;
+    mouse_cpi = CLIP(cpi, DIGITIZER_MIN_CPI, DIGITIZER_MAX_CPI);
+    digitizer_set_scale((mouse_cpi * 100) / DIGITIZER_MAX_CPI);
 }
 
 // The gesture detection state machine will transition between these states.
@@ -140,8 +151,8 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
     static int      last_contacts      = 0;
     static uint16_t last_x             = 0;
     static uint16_t last_y             = 0;
-    const uint16_t  x                  = report->fingers[0].x * (DIGITIZER_RESOLUTION_X / DIGITIZER_WIDTH_MM) / mouse_cpi;
-    const uint16_t  y                  = report->fingers[0].y * (DIGITIZER_RESOLUTION_Y / DIGITIZER_HEIGHT_MM) / mouse_cpi;
+    const uint16_t  x                  = report->fingers[0].x;
+    const uint16_t  y                  = report->fingers[0].y;
     const uint32_t  duration           = timer_elapsed32(contact_start_time);
     int             contacts           = 0;
 
