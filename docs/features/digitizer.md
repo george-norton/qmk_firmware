@@ -91,12 +91,14 @@ It is strongly recommended to put your digitizer device on the master half, as t
 
 ## Callbacks and Functions 
 
-| Function                                                   | Description                                                                                                                                                 |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `digitizer_init_kb(void)`                                  | Callback to allow for keyboard level initialization. Useful for additional hardware sensors.                                                                |
-| `digitizer_init_user(void)`                                | Callback to allow for user level initialization Useful for additional hardware sensors.                                                                     |
-| `digitizer_task_kb(digitizer_t *const digitizer_state)`    | Callback that provides the keyboard an opportunity to change the digitizer state whenever we get new digitizer data. Returns true if the state was changed. |
-| `digitizer_task_user(digitizer_t *const digitizer_state)`  | Callback that provides the user an opportunity to change the digitizer state whenever we get new digitizer data. Returns true if the state was changed.     |
+| Function                                                   | Description                                                                                                                                                                                                |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `digitizer_init_kb(void)`                                  | Callback to allow for keyboard level initialization. Useful for additional hardware sensors.                                                                                                               |
+| `digitizer_init_user(void)`                                | Callback to allow for user level initialization Useful for additional hardware sensors.                                                                                                                    |
+| `digitizer_task_kb(digitizer_t *const digitizer_state)`    | Callback that provides the keyboard an opportunity to change the digitizer state whenever we get new digitizer data. Returns true if the state was changed.                                                |
+| `digitizer_task_user(digitizer_t *const digitizer_state)`  | Callback that provides the user an opportunity to change the digitizer state whenever we get new digitizer data. Returns true if the state was changed.                                                    |
+| `digitizer_set_scale(uint8_t scale)`                       | Scale finger poitions by a percentage. This provides a mechanism for the device to reduce the pointer speed but it may cause issues with swipe gestures if you can no longer generate a long enough swipe. |
+| `digitizer_get_scale()`                                    | Gets the configured scaling percentage.                                                                                                                                                                    |
 
 ## Example
 
