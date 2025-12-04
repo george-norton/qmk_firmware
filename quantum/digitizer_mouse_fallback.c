@@ -76,7 +76,12 @@ bool digitizer_taps_as_clicks = false;
 // during USB enumeration if the host sends a feature report indicating it supports
 // Microsofts Precision Trackpad protocol. This variable can also be modified by users
 // to force reporting as a mouse or as a digitizer.
-bool                  digitizer_send_mouse_reports = true;
+// Default to true for Microsoft PTP compliance (start as mouse, switch to digitizer after feature request).
+// Can be set to false via DIGITIZER_DEFAULT_MOUSE_REPORTS define for Mac (may break some KVMs).
+#    ifndef DIGITIZER_DEFAULT_MOUSE_REPORTS
+#        define DIGITIZER_DEFAULT_MOUSE_REPORTS true
+#    endif
+bool                  digitizer_send_mouse_reports = DIGITIZER_DEFAULT_MOUSE_REPORTS;
 static report_mouse_t mouse_report                 = {};
 
 static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report);

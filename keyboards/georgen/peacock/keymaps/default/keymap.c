@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include QMK_KEYBOARD_H
+#include "digitizer.h"
+#include "host.h"
 
 enum peacock_keycodes {
     LMB_TOGGLE = QK_USER_0,
     DPI_INC,
     DPI_DEC
 };
+
+static uint8_t digitizer_button_state = 0;
 
 const uint16_t PROGMEM etch_a_sketch_combo[] = { KC_LGUI, KC_ENTER, COMBO_END };
 combo_t key_combos[] = {
@@ -76,6 +80,61 @@ bool shutdown_kb(bool jump_to_bootloader) {
     return true;
 }
 
+#ifdef MACOS_TRACKPAD_MODE
+#include "pointing_device.h"
+
+report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
+    // Let the normal digitizer_task() flow handle sending digitizer reports.
+    // This respects the digitizer_send_mouse_reports flag, which ensures proper
+    // Microsoft PTP compliance (start as mouse, switch to digitizer after feature request).
+    // The digitizer_task_kb() callback below handles updating button state from
+    // physical keys, and digitizer_task() will send reports when digitizer_send_mouse_reports
+    // is false (either by default for Mac, or after Windows sends the PTP feature request).
+    return pointing_device_task_user(mouse_report);
+}
+#endif
+
+void pointing_device_keycode_handler(uint16_t keycode, bool pressed) {
+    if (IS_MOUSEKEY_BUTTON(keycode)) {
+        uint8_t button_idx = keycode - QK_MOUSE_BUTTON_1;
+        
+        // Limit to buttons 1-3 (digitizer supports up to 3 buttons)
+        if (button_idx > 2) {
+            return;
+        }
+        
+        uint8_t button_mask = 1 << button_idx;
+        
+        if (pressed) {
+            digitizer_button_state |= button_mask;
+        } else {
+            digitizer_button_state &= ~button_mask;
+        }
+        
+        // Send buttons to both interfaces for cross-platform compatibility:
+        // - Digitizer interface: macOS expects buttons from the same interface it uses for pointing
+        // - Mouse interface: Linux/other OSes use the Mouse interface for both pointing and buttons
+#if defined(DIGITIZER_ENABLE)
+        report_digitizer_t digitizer_report = {
+            .report_id = REPORT_ID_DIGITIZER,
+            .fingers = {},
+            .scan_time = 0,
+            .contact_count = 0,
+            .button1 = (digitizer_button_state & 0x01) ? 1 : 0,
+            .button2 = (digitizer_button_state & 0x02) ? 1 : 0,
+            .button3 = (digitizer_button_state & 0x04) ? 1 : 0,
+            .reserved2 = 0
+        };
+        host_digitizer_send(&digitizer_report);
+#endif
+        
+        report_mouse_t mouse_report = pointing_device_get_report();
+        mouse_report.buttons = pointing_device_handle_buttons(mouse_report.buttons, pressed, button_idx);
+        pointing_device_set_report(mouse_report);
+        pointing_device_send();
+    }
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
         case LMB_TOGGLE:
@@ -110,4 +169,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         }
     }
     return true;
+}
+
+bool digitizer_task_kb(digitizer_t *digitizer_state) {
+    // Update digitizer button state from physical button state tracked in keycode handler
+    digitizer_state->button1 = (digitizer_button_state & 0x01) ? 1 : 0;
+    digitizer_state->button2 = (digitizer_button_state & 0x02) ? 1 : 0;
+    digitizer_state->button3 = (digitizer_button_state & 0x04) ? 1 : 0;
+    
+    return digitizer_task_user(digitizer_state);
 }
