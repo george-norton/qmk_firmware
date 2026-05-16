@@ -530,6 +530,7 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
                     }
 
                     digitizer_report.contacts[contact_id].in_range = true;
+                    digitizer_report.contacts[contact_id].pressure = ampl;
 
                     if (type == MXT_FINGER) {
                         if (event == MXT_DOWN || event == MXT_MOVE) {

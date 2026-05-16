@@ -253,6 +253,7 @@ bool digitizer_task(void) {
                 report.fingers[finger_index].x          = scale_offset_x + (tmp_state.contacts[i].x * scale_percentage) / 100;
                 report.fingers[finger_index].y          = scale_offset_y + (tmp_state.contacts[i].y * scale_percentage) / 100;
                 report.fingers[finger_index].confidence = tmp_state.contacts[i].confidence;
+                report.fingers[finger_index].pressure   = tmp_state.contacts[i].pressure;
             }
 #endif
 #ifdef DIGITIZER_HAS_STYLUS
