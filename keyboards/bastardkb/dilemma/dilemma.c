@@ -2,6 +2,7 @@
  * Copyright 2020 Christopher Courtney <drashna@live.com> (@drashna)
  * Copyright 2021 Quentin LEBASTARD <qlebastard@gmail.com>
  * Copyright 2022 Charly Delay <charly@codesink.dev> (@0xcharly)
+ * Copyright 2023 casuanoob <casuanoob@hotmail.com> (@casuanoob)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Publicw License as published by
@@ -22,6 +23,14 @@
 #ifdef CONSOLE_ENABLE
 #    include "print.h"
 #endif // CONSOLE_ENABLE
+
+#ifndef LAYER_INDICATOR_BRIGHTNESS_INC
+#    define LAYER_INDICATOR_BRIGHTNESS_INC 22
+#endif
+
+#ifndef CAPSLOCK_INDICATOR_BRIGHTNESS_INC
+#    define CAPSLOCK_INDICATOR_BRIGHTNESS_INC 76
+#endif
 
 #ifdef POINTING_DEVICE_ENABLE
 #    ifndef DILEMMA_MINIMUM_DEFAULT_DPI
@@ -69,7 +78,7 @@ static dilemma_config_t g_dilemma_config = {0};
  * this state is always written to maximize write-performances.  Therefore, we
  * explicitly set them to `false` in this function.
  */
-static void read_dilemma_config_from_eeprom(dilemma_config_t* config) {
+static void read_dilemma_config_from_eeprom(dilemma_config_t *config) {
     config->raw                   = eeconfig_read_kb() & 0xff;
     config->is_dragscroll_enabled = false;
     config->is_sniping_enabled    = false;
@@ -83,22 +92,22 @@ static void read_dilemma_config_from_eeprom(dilemma_config_t* config) {
  * resets these 2 values to `false` since it does not make sense to persist
  * these across reboots of the board.
  */
-static void write_dilemma_config_to_eeprom(dilemma_config_t* config) {
+static void write_dilemma_config_to_eeprom(dilemma_config_t *config) {
     eeconfig_update_kb(config->raw);
 }
 
 /** \brief Return the current value of the pointer's default DPI. */
-static uint16_t get_pointer_default_dpi(dilemma_config_t* config) {
+static uint16_t get_pointer_default_dpi(dilemma_config_t *config) {
     return (uint16_t)config->pointer_default_dpi * DILEMMA_DEFAULT_DPI_CONFIG_STEP + DILEMMA_MINIMUM_DEFAULT_DPI;
 }
 
 /** \brief Return the current value of the pointer's sniper-mode DPI. */
-static uint16_t get_pointer_sniping_dpi(dilemma_config_t* config) {
+static uint16_t get_pointer_sniping_dpi(dilemma_config_t *config) {
     return (uint16_t)config->pointer_sniping_dpi * DILEMMA_SNIPING_DPI_CONFIG_STEP + DILEMMA_MINIMUM_SNIPING_DPI;
 }
 
 /** \brief Set the appropriate DPI for the input config. */
-static void maybe_update_pointing_device_cpi(dilemma_config_t* config) {
+static void maybe_update_pointing_device_cpi(dilemma_config_t *config) {
     if (config->is_dragscroll_enabled) {
         pointing_device_set_cpi(DILEMMA_DRAGSCROLL_DPI);
     } else if (config->is_sniping_enabled) {
@@ -114,7 +123,7 @@ static void maybe_update_pointing_device_cpi(dilemma_config_t* config) {
  * Increases the DPI value if `forward` is `true`, decreases it otherwise.
  * The increment/decrement steps are equal to DILEMMA_DEFAULT_DPI_CONFIG_STEP.
  */
-static void step_pointer_default_dpi(dilemma_config_t* config, bool forward) {
+static void step_pointer_default_dpi(dilemma_config_t *config, bool forward) {
     config->pointer_default_dpi += forward ? 1 : -1;
     maybe_update_pointing_device_cpi(config);
 }
@@ -125,7 +134,7 @@ static void step_pointer_default_dpi(dilemma_config_t* config, bool forward) {
  * Increases the DPI value if `forward` is `true`, decreases it otherwise.
  * The increment/decrement steps are equal to DILEMMA_SNIPING_DPI_CONFIG_STEP.
  */
-static void step_pointer_sniping_dpi(dilemma_config_t* config, bool forward) {
+static void step_pointer_sniping_dpi(dilemma_config_t *config, bool forward) {
     config->pointer_sniping_dpi += forward ? 1 : -1;
     maybe_update_pointing_device_cpi(config);
 }
@@ -176,6 +185,7 @@ void dilemma_set_pointer_dragscroll_enabled(bool enable) {
 
 void pointing_device_init_kb(void) {
     maybe_update_pointing_device_cpi(&g_dilemma_config);
+    pointing_device_init_user();
 }
 
 /**
@@ -183,7 +193,7 @@ void pointing_device_init_kb(void) {
  *
  * Implement drag-scroll.
  */
-static void pointing_device_task_dilemma(report_mouse_t* mouse_report) {
+static void pointing_device_task_dilemma(report_mouse_t *mouse_report) {
     static int16_t scroll_buffer_x = 0;
     static int16_t scroll_buffer_y = 0;
     if (g_dilemma_config.is_dragscroll_enabled) {
@@ -240,7 +250,7 @@ static bool has_shift_mod(void) {
  *   - default DPI: internal table index/actual DPI
  *   - sniping DPI: internal table index/actual DPI
  */
-static void debug_dilemma_config_to_console(dilemma_config_t* config) {
+static void debug_dilemma_config_to_console(dilemma_config_t *config) {
 #    ifdef CONSOLE_ENABLE
     dprintf("(dilemma) process_record_kb: config = {\n"
             "\traw = 0x%X,\n"
@@ -255,7 +265,7 @@ static void debug_dilemma_config_to_console(dilemma_config_t* config) {
 #    endif // CONSOLE_ENABLE
 }
 
-bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if (!process_record_user(keycode, record)) {
         debug_dilemma_config_to_console(&g_dilemma_config);
         return false;
@@ -326,6 +336,95 @@ void matrix_init_kb(void) {
     matrix_init_user();
 }
 #endif // POINTING_DEVICE_ENABLE
+
+#ifdef RGB_MATRIX_ENABLE
+static HSV _get_hsv_for_layer_index(uint8_t layer) {
+    switch (layer) {
+        case 1:
+            return (HSV){HSV_BLUE};
+        case 2:
+            return (HSV){HSV_ORANGE};
+        case 3:
+            return (HSV){HSV_AZURE};
+        case 4:
+            return (HSV){HSV_GREEN};
+        case 5:
+            return (HSV){HSV_TEAL};
+        case 6:
+            return (HSV){HSV_PURPLE};
+        case 7:
+        default:
+            return (hsv_t){HSV_RED};
+            break;
+    };
+}
+
+// Layer state indicator
+bool rgb_matrix_indicators_advanced_kb(uint8_t led_min, uint8_t led_max) {
+    if (!rgb_matrix_indicators_advanced_user(led_min, led_max)) {
+        return false;
+    }
+
+    // Set underglow to a solid color for highest active layer apart from the base layer.
+    const uint8_t layer = get_highest_layer(layer_state);
+    if (layer > 0) {
+        HSV hsv = _get_hsv_for_layer_index(layer);
+
+        // Set brightness to the configured interval brighter than current brightness, clamped to 255 (ie. uint8_t max value). This compensates for the dimmer appearance of the underglow LEDs.
+        hsv.v         = MIN(rgb_matrix_get_val() + LAYER_INDICATOR_BRIGHTNESS_INC, 255);
+        const RGB rgb = hsv_to_rgb(hsv);
+
+        for (int i = led_min; i < led_max; i++) {
+            rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
+        }
+    }
+
+    // Set underglow LEDs to red if caps lock is enabled
+    if (host_keyboard_led_state().caps_lock) {
+        for (int i = led_min; i <= led_max; i++) {
+            if (HAS_FLAGS(g_led_config.flags[i], LED_FLAG_UNDERGLOW)) {
+                // set modifier-flagged LEDs to a pure a configured interval brighter than the current brightness, clamped to 255 (ie. uint8_t max value).
+                rgb_matrix_set_color(i, MIN(rgb_matrix_get_val() + CAPSLOCK_INDICATOR_BRIGHTNESS_INC, 255), 0, 0);
+            }
+        }
+    }
+
+    return true;
+};
+#endif // RGB_MATRIX_ENABLE
+
+#ifdef ENCODER_ENABLE
+bool encoder_update_kb(uint8_t index, bool clockwise) {
+    if (!encoder_update_user(index, clockwise)) {
+        return false;
+    }
+    switch (index) {
+        case 0: // Left-half encoder, mouse scroll.
+            tap_code(clockwise ? MS_WHLU : MS_WHLD);
+            break;
+        case 1: // Right-half encoder, volume control.
+            tap_code(clockwise ? KC_AUDIO_VOL_UP : KC_AUDIO_VOL_DOWN);
+            break;
+    }
+    return true;
+}
+#endif // ENCODER_ENABLE
+
+// Forward declare RP2040 SDK declaration.
+void gpio_init(uint gpio);
+
+void keyboard_pre_init_kb(void) {
+    // Ensures that GP26 through GP29 are initialized as digital inputs (as
+    // opposed to analog inputs).  These GPIOs are shared with A0 through A3,
+    // respectively.  On RP2040-B2 and later, the digital inputs are disabled by
+    // default (see RP2040-E6).
+    gpio_init(GP26);
+    gpio_init(GP27);
+    gpio_init(GP28);
+    gpio_init(GP29);
+
+    keyboard_pre_init_user();
+}
 
 bool shutdown_kb(bool jump_to_bootloader) {
     if (!shutdown_user(jump_to_bootloader)) {

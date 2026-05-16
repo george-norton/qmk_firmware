@@ -14,9 +14,7 @@
     "diode_direction": "ROW2COL",
     "split": {
         "enabled": true,
-        "serial": {
-            "pin": "GP1"
-        },
+        "soft_serial_pin": "GP1",
         "bootmagic": {
             "matrix": [4, 0]
         },
@@ -34,13 +32,16 @@
     },
     "features": {
         "bootmagic": true,
+        "command": false,
+        "console": true,
         "extrakey": true,
         "mousekey": true,
         "nkro": true,
         "rgb_matrix": true,
         "pointing_device": true,
         "caps_word": true,
-        "tri_layer": true
+        "tri_layer": true,
+        "digitizer": true
     },
     "ws2812": {
         "pin": "GP10",
