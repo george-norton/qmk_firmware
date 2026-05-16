@@ -204,11 +204,42 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         }
         case Drag:
         case MoveScroll: {
+            static int x_buffer = 0;
+            static int y_buffer = 0;
+            static uint8_t last_pressure = 0;
+            static uint8_t pressure_reduction = 0;
+            static uint8_t peak_pressure = 0;
             if (contacts == 0) {
                 state = None;
+                x_buffer = 0;
+                y_buffer = 0;
+                last_pressure = 0;
+                pressure_reduction = 0;
+                peak_pressure = 0;
             } else if (contacts == 1) {
-                mouse_report.x = x - last_x;
-                mouse_report.y = y - last_y;
+                // Buffer movement if the pressure is reducing - this may be an indication the user is lifting off.
+                // If it is a lift-off, the buffered motion is discarded.
+                const uint8_t pressure = report->fingers[0].pressure;
+                if (pressure > peak_pressure) {
+                    peak_pressure = pressure;
+                }
+                if (pressure < last_pressure) {
+                    pressure_reduction += last_pressure - pressure;
+                }
+                if (pressure > last_pressure) {
+                    pressure_reduction = 0;
+                }
+                if (pressure_reduction > peak_pressure / 2) {
+                    x_buffer += (x - last_x);
+                    y_buffer += (y - last_y);
+                }
+                else {
+                    mouse_report.x = x - last_x + x_buffer;
+                    mouse_report.y = y - last_y + y_buffer;
+                    x_buffer = 0;
+                    y_buffer = 0;
+                }
+                last_pressure = pressure;
             } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIMEOUT) {
                 state = Swipe;
             } else {

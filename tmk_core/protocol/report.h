@@ -250,9 +250,9 @@ typedef struct {
 typedef struct {
     uint8_t  confidence : 1;
     uint8_t  tip : 1;
-    uint8_t  reserved : 6;
     uint8_t  contact_id : 3;
-    uint8_t  reserved2 : 5;
+    uint8_t  reserved2 : 3;
+    uint8_t  pressure;
     uint16_t x;
     uint16_t y;
 } PACKED digitizer_finger_report_t;

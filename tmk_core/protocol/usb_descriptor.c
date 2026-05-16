@@ -385,11 +385,6 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
             HID_RI_REPORT_SIZE(8, 0x01),                                         \
             HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE), \
                                                                                  \
-            /*  Padding (6 bits) */                                              \
-            HID_RI_REPORT_SIZE(8, 0x01),                                         \
-            HID_RI_REPORT_COUNT(8, 0x06),                                        \
-            HID_RI_INPUT(8, HID_IOF_CONSTANT),                                   \
-                                                                                 \
             /*  Contact identifier (3 bits) */                                   \
             HID_RI_REPORT_COUNT(8, 0x01),                                        \
             HID_RI_REPORT_SIZE(8, 0x03),                                         \
@@ -397,10 +392,17 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
             HID_RI_USAGE(8, 0x51),         /*  Contact identifier */             \
             HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE), \
                                                                                  \
-            /*  Padding (5 bits) */                                              \
+            /*  Padding (3 bits) */                                              \
             HID_RI_REPORT_SIZE(8, 0x01),                                         \
-            HID_RI_REPORT_COUNT(8, 0x05),                                        \
+            HID_RI_REPORT_COUNT(8, 0x03),                                        \
             HID_RI_INPUT(8, HID_IOF_CONSTANT),                                   \
+                                                                                 \
+            /*  Contact pressure (8 bits) */                                     \
+            HID_RI_REPORT_COUNT(8, 0x01),                                        \
+            HID_RI_REPORT_SIZE(8, 0x08),                                         \
+            HID_RI_LOGICAL_MAXIMUM(8, 0xFF),                                     \
+            HID_RI_USAGE(8, 0x30),         /*  Contact pressure */               \
+            HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE), \
                                                                                  \
             /*  X/Y Position (4 bytes) */                                        \
             HID_RI_USAGE_PAGE(8, 0x01),    /*  Generic Desktop */                \

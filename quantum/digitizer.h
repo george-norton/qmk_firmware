@@ -33,6 +33,7 @@ typedef struct {
     uint8_t          tip : 1;
     uint8_t          in_range : 1;
     uint8_t          confidence : 1;
+    uint8_t          pressure;
     uint16_t         x;
     uint16_t         y;
 } digitizer_contact_t;
