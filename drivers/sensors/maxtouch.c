@@ -159,6 +159,16 @@
 #    define MXT_T47_CONFTHR 6
 #endif
 
+// The amplitude is optionally reported as pressure information,
+// but the value may need to be scaled on larger devices.
+#ifndef MXT_T100_AMPL_COEFF
+#    define MXT_T100_AMPL_COEFF 0
+#endif
+
+#ifndef MAX_T100_AMPL_OFFSET
+#    define MAX_T100_AMPL_OFFSET 0
+#endif
+
 // Data from the object table. Registers are not at fixed addresses, they may vary between firmware
 // versions. Instead must read the addresses from the object table.
 static uint16_t t2_encryption_status_address                 = 0;
@@ -434,6 +444,10 @@ void maxtouch_init(void) {
         cfg.yrange       = DIGITIZER_RESOLUTION_Y - 1; // the host uses this to set the speed of the pointer.
 #endif
         cfg.cfg2         = MXT_CONFTHR; // Touch debounce
+
+        // Scale amplitude reporting
+        cfg.amplcoeff    = MXT_T100_AMPL_COEFF;
+        cfg.amploffset   = MAX_T100_AMPL_OFFSET;
 
         i2c_status_t status = i2c_write_register16(MXT336UD_ADDRESS, t100_multiple_touch_touchscreen_address, (uint8_t *)&cfg, sizeof(mxt_touch_multiscreen_t100), MXT_I2C_TIMEOUT_MS);
         if (status != I2C_STATUS_SUCCESS) {
