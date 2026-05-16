@@ -33,27 +33,9 @@ const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRIX_COLS] = {
     {{0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}},
     {{0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}},
     {{0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}},
-    {{0, 4}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}}
-};
+    {{0, 4}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}}};
 
 #    ifdef ENCODER_MAP_ENABLE
 const uint8_t PROGMEM encoder_hand_swap_config[NUM_ENCODERS] = {1, 0};
 #    endif
 #endif
-
-#ifdef ENCODER_ENABLE
-bool encoder_update_kb(uint8_t index, bool clockwise) {
-    if (!encoder_update_user(index, clockwise)) {
-        return false;
-    }
-    switch (index) {
-        case 0: // Left-half encoder, mouse scroll.
-            tap_code(clockwise ? MS_WHLD : MS_WHLU);
-            break;
-        case 1: // Right-half encoder, volume control.
-            tap_code(clockwise ? KC_AUDIO_VOL_UP : KC_AUDIO_VOL_DOWN);
-            break;
-    }
-    return true;
-}
-#endif // ENCODER_ENABLE

@@ -1,27 +1,29 @@
 # Skeletyl
 
-* Keyboard Maintainer: [Quentin Lebastard](https://github.com/bastardkb)
-* Hardware Supported: BastardKB Blackpill or Pro Micro adapter & compatible development boards
-* Hardware Availability: [GitHub](https://github.com/Bastardkb/Skeletyl)
+A very small keyboard made for ergonomic enthusiasts.
 
-Make example for this keyboard (after setting up your build environment):
+* Keyboard Maintainer: [Bastard Keyboards](https://github.com/Bastardkb/)
+* Hardware Supported: Splinky v3, Splinktegrated
+* Hardware Availability: [Bastardkb.com](https://bastardkb.com/)
 
-    make bastardkb/skeletyl/blackpill:default
-    make bastardkb/skeletyl/promicro:default
+## Building the firmware
 
-Flashing example for this keyboard:
+The template is:
 
-    make bastardkb/skeletyl/blackpill:default:flash
-    make bastardkb/skeletyl/promicro:default:flash
+```shell
+qmk compile -kb bastardkb/skeletyl -km {KEYMAP}
+```
 
-Note if using the `promicro` version: If you are using an Elite-C compatible development board, see [here](../readme.md#handedness-pin-on-elite-c-holder) for setting handedness by pin.
+| default                                            |
+| -------------------------------------------------- |
+| `qmk compile -kb bastardkb/skeletyl -km default`   |
+
+This keyboard is made to be used with the Miryoku layout, do not use the default keymap.
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
 
-## Bootloader
+See the [keyboard build instructions](http://docs.bastardkb.com/)
 
-Enter the bootloader in 3 ways:
+### Legacy hardware
 
-* **Bootmagic reset**: Hold down the key at (0,0) in the matrix and plug in the keyboard
-* **Physical reset button**: Briefly press the button on the back of the adapter PCB
-* **Keycode in layout**: Press the key mapped to `QK_BOOT` if it is available
+For older configurations, including `blackpill`, `v1` shield versions, `elitec` and `splinky_2` support, please see the archived tree at commit [`f0ffdc3b6d`](https://github.com/Bastardkb/bastardkb-qmk/tree/f0ffdc3b6d34b1d0e72474bc2d2296399871d5b9/keyboards/bastardkb/skeletyl).
