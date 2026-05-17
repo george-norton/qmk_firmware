@@ -295,7 +295,7 @@ bool digitizer_task(void) {
         } else {
             digitizer_update_mouse_report(&last_report);
         }
-        if (!digitizer_send_mouse_reports) {
+        if (!(force_digitizer_send_mouse_reports || digitizer_send_mouse_reports)) {
 #endif
             if (report.contact_count || button_state_changed) {
 #if DIGITIZER_FINGER_COUNT > 0
