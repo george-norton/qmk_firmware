@@ -21,7 +21,7 @@
 #    endif
 
 #    ifndef DIGITIZER_MOUSE_TAP_DISTANCE
-#        define DIGITIZER_MOUSE_TAP_DISTANCE 25
+#        define DIGITIZER_MOUSE_TAP_DISTANCE 50
 #    endif
 
 #    ifndef DIGITIZER_SCROLL_DIVISOR
@@ -77,6 +77,8 @@ bool digitizer_taps_as_clicks = false;
 // Microsofts Precision Trackpad protocol. This variable can also be modified by users
 // to force reporting as a mouse or as a digitizer.
 bool                  digitizer_send_mouse_reports = true;
+bool                  force_digitizer_send_mouse_reports = false;
+
 static report_mouse_t mouse_report                 = {};
 
 static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report);
@@ -105,7 +107,7 @@ static bool digitizer_mouse_fallback_init(void)
  * @return report_mouse_t
  */
 static report_mouse_t digitizer_get_mouse_report(report_mouse_t _mouse_report) {
-    if (digitizer_send_mouse_reports) {
+    if (force_digitizer_send_mouse_reports || digitizer_send_mouse_reports) {
         report_mouse_t report = mouse_report;
         // Retain the button state, but drop any motion.
         memset(&mouse_report, 0, sizeof(report_mouse_t));
@@ -172,13 +174,13 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
     memset(&mouse_report, 0, sizeof(report_mouse_t));
 
     for (int i = 0; i < DIGITIZER_FINGER_COUNT; i++) {
-        if (report->fingers[i].tip) {
+        if (report->fingers[i].tip && ((state == None && report->fingers[i].pressure > 30) || (state != None && report->fingers[i].pressure > 25))) {
             contacts++;
         }
     }
     switch (state) {
         case None: {
-            if (contacts != 0) {
+            if (contacts != 0 && report->fingers[0].pressure > 30) {
                 state              = Down;
                 contact_start_time = timer_read32();
                 contact_start_x    = x;
@@ -204,42 +206,11 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         }
         case Drag:
         case MoveScroll: {
-            static int x_buffer = 0;
-            static int y_buffer = 0;
-            static uint8_t last_pressure = 0;
-            static uint8_t pressure_reduction = 0;
-            static uint8_t peak_pressure = 0;
             if (contacts == 0) {
                 state = None;
-                x_buffer = 0;
-                y_buffer = 0;
-                last_pressure = 0;
-                pressure_reduction = 0;
-                peak_pressure = 0;
-            } else if (contacts == 1) {
-                // Buffer movement if the pressure is reducing - this may be an indication the user is lifting off.
-                // If it is a lift-off, the buffered motion is discarded.
-                const uint8_t pressure = report->fingers[0].pressure;
-                if (pressure > peak_pressure) {
-                    peak_pressure = pressure;
-                }
-                if (pressure < last_pressure) {
-                    pressure_reduction += last_pressure - pressure;
-                }
-                if (pressure > last_pressure) {
-                    pressure_reduction = 0;
-                }
-                if (pressure_reduction > peak_pressure / 2) {
-                    x_buffer += (x - last_x);
-                    y_buffer += (y - last_y);
-                }
-                else {
-                    mouse_report.x = x - last_x + x_buffer;
-                    mouse_report.y = y - last_y + y_buffer;
-                    x_buffer = 0;
-                    y_buffer = 0;
-                }
-                last_pressure = pressure;
+            } else if (contacts == 1 && report->fingers[0].pressure > 25) {
+                mouse_report.x = x - last_x;
+                mouse_report.y = y - last_y;
             } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIMEOUT) {
                 state = Swipe;
             } else {
@@ -280,7 +251,7 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
                 state = None;
             } else if (duration > DIGITIZER_MOUSE_SWIPE_TIMEOUT) {
                 state = MoveScroll;
-            } else if (digitizer_send_mouse_reports) {
+            } else if (force_digitizer_send_mouse_reports || digitizer_send_mouse_reports) {
                 if (distance_x > DIGITIZER_MOUSE_SWIPE_DISTANCE && abs(distance_y) < DIGITIZER_MOUSE_SWIPE_THRESHOLD) {
                     // Swipe right
                     tap_code(DIGITIZER_SWIPE_RIGHT_KC);
