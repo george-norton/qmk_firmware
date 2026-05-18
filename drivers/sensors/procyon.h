@@ -28,7 +28,9 @@
 #    define MXT_ACTIVE_ACQUISITION_INTERVAL 255 // Free run while active - this enables us to reach a polling rate of around 300Hz
 #    define MXT_CONFTHR 5 // Increase debounce time
 #    define MXT_MOVE_HYSTERESIS_NEXT 16
-#    define MXT_T100_AMPL_COEFF 11 // Scale pressure reports
+#    ifndef MAX_T100_AMPL_OFFSET
+#        define MXT_T100_AMPL_COEFF 16 // Scale pressure reports
+#    endif
 #endif
 
 // Board specific configuration
