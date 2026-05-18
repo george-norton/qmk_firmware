@@ -503,7 +503,7 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
         HID_RI_USAGE(8, 0x0E),                 // Configuration
         HID_RI_COLLECTION(8, 0x01),            // Application
         HID_RI_PUSH(0),
-        HID_RI_REPORT_ID(8, REPORT_ID_DIGITIZER_CONFIGURATION),
+        HID_RI_REPORT_ID(8, REPORT_ID_DIGITIZER_INPUT_MODE),
         HID_RI_USAGE(8, 0x22),                 // Finger
         HID_RI_COLLECTION(8, 0x02),            // Logical
         HID_RI_USAGE(8, 0x52),                 // Input mode
