@@ -290,12 +290,12 @@ static bool usb_requests_hook_cb(USBDriver *usbp) {
                             case DIGITIZER_INTERFACE:
 #endif
                                 // Touchpad set feature reports - TODO: Relocate?
-                                if ((setup->wValue.hbyte == 0x3) && (setup->wValue.lbyte == REPORT_ID_DIGITIZER_CONFIGURATION)) {
+                                if ((setup->wValue.hbyte == 0x3) && (setup->wValue.lbyte == REPORT_ID_DIGITIZER_FUNCTION_SWITCH)) {
                                     // TODO: Disable the touchpad/buttons on demand from the host For now just ACK the message by
                                     // sending back an empty packet with our report id.
                                     usbSetupTransfer(usbp, &(setup->wValue.lbyte), 1, NULL);
                                     return true;
-                                } else if ((setup->wValue.hbyte == 0x3) && (setup->wValue.lbyte == REPORT_ID_DIGITIZER_FUNCTION_SWITCH)) {
+                                } else if ((setup->wValue.hbyte == 0x3) && (setup->wValue.lbyte == REPORT_ID_DIGITIZER_INPUT_MODE)) {
                                     // TODO: Mode switching - Windows precision touchpads should start up reporting as a mouse, then switch
                                     // to trackpad reports if we get asked. For now just ACK the message by sending back an empty packet
                                     // with our report id.
