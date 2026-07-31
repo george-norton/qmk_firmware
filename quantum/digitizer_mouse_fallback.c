@@ -174,18 +174,28 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
     memset(&mouse_report, 0, sizeof(report_mouse_t));
 
     for (int i = 0; i < DIGITIZER_FINGER_COUNT; i++) {
-        if (report->fingers[i].tip && ((state == None && report->fingers[i].pressure > 30) || (state != None && report->fingers[i].pressure > 25))) {
-            contacts++;
+        if (report->fingers[i].tip) {
+#ifdef DIGITIZER_REPORT_FINGER_PRESSURE
+            if ((state == None && report->fingers[i].pressure > 30) || (state != None && report->fingers[i].pressure > 25))
+#endif
+            {
+                contacts++;
+            }
         }
     }
     switch (state) {
         case None: {
-            if (contacts != 0 && report->fingers[0].pressure > 30) {
-                state              = Down;
-                contact_start_time = timer_read32();
-                contact_start_x    = x;
-                contact_start_y    = y;
-                tap_contacts       = contacts;
+            if (contacts != 0) {
+#ifdef DIGITIZER_REPORT_FINGER_PRESSURE
+                if (report->fingers[0].pressure > 30)
+#endif
+                {
+                    state              = Down;
+                    contact_start_time = timer_read32();
+                    contact_start_x    = x;
+                    contact_start_y    = y;
+                    tap_contacts       = contacts;
+                }
             }
             break;
         }
@@ -208,7 +218,11 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         case MoveScroll: {
             if (contacts == 0) {
                 state = None;
+#ifdef DIGITIZER_REPORT_FINGER_PRESSURE
             } else if (contacts == 1 && report->fingers[0].pressure > 25) {
+#else
+            } else if (contacts == 1) {
+#endif
                 mouse_report.x = x - last_x;
                 mouse_report.y = y - last_y;
             } else if (contacts == 3 && duration < DIGITIZER_MOUSE_SWIPE_TIMEOUT) {

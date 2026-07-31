@@ -544,8 +544,9 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
                     }
 
                     digitizer_report.contacts[contact_id].in_range = true;
+#ifdef DIGITIZER_REPORT_FINGER_PRESSURE
                     digitizer_report.contacts[contact_id].pressure = ampl;
-
+#endif
                     if (type == MXT_FINGER) {
                         if (event == MXT_DOWN || event == MXT_MOVE) {
                             digitizer_report.contacts[contact_id].tip = true;
