@@ -252,7 +252,9 @@ typedef struct {
     uint8_t  tip : 1;
     uint8_t  contact_id : 3;
     uint8_t  reserved2 : 3;
+#ifdef DIGITIZER_REPORT_FINGER_PRESSURE
     uint8_t  pressure;
+#endif
     uint16_t x;
     uint16_t y;
 } PACKED digitizer_finger_report_t;

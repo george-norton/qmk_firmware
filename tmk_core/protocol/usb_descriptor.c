@@ -371,7 +371,18 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
     HID_RI_COLLECTION(8, 0x01),            // Application
         HID_RI_REPORT_ID(8, REPORT_ID_DIGITIZER),
 // The digitizer finger report is large and repetitive, so it has been moved into a macro
-#        define DIGITIZER_FINGER_REPORT                                              \
+#ifdef DIGITIZER_REPORT_FINGER_PRESSURE
+#define DIGITIZER_FINGER_PRESSURE                                                \
+            /*  Contact pressure (8 bits) */                                     \
+            HID_RI_REPORT_COUNT(8, 0x01),                                        \
+            HID_RI_REPORT_SIZE(8, 0x08),                                         \
+            HID_RI_LOGICAL_MAXIMUM(8, 0xFF),                                     \
+            HID_RI_USAGE(8, 0x30),         /*  Contact pressure */               \
+            HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
+#else
+#define DIGITIZER_FINGER_PRESSURE
+#endif
+#    define DIGITIZER_FINGER_REPORT                                              \
         HID_RI_USAGE_PAGE(8, 0x0D),        /*  Digitizers */                     \
         HID_RI_USAGE(8, 0x22),             /*  Finger */                         \
         HID_RI_COLLECTION(8, 0x00),        /*  Physical */                       \
@@ -397,12 +408,8 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
             HID_RI_REPORT_COUNT(8, 0x03),                                        \
             HID_RI_INPUT(8, HID_IOF_CONSTANT),                                   \
                                                                                  \
-            /*  Contact pressure (8 bits) */                                     \
-            HID_RI_REPORT_COUNT(8, 0x01),                                        \
-            HID_RI_REPORT_SIZE(8, 0x08),                                         \
-            HID_RI_LOGICAL_MAXIMUM(8, 0xFF),                                     \
-            HID_RI_USAGE(8, 0x30),         /*  Contact pressure */               \
-            HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE), \
+            /*  Optional contact pressure (8 bits) */                            \
+            DIGITIZER_FINGER_PRESSURE                                            \
                                                                                  \
             /*  X/Y Position (4 bytes) */                                        \
             HID_RI_USAGE_PAGE(8, 0x01),    /*  Generic Desktop */                \
