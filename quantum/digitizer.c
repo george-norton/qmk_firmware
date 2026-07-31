@@ -160,13 +160,42 @@ __attribute__((weak)) bool digitizer_motion_detected(void) {
 #endif
 
 static uint8_t scale_percentage = 100;
-static uint16_t scale_offset_x = 0;
-static uint16_t scale_offset_y = 0;
+
+typedef struct {
+    bool isAdjusted;
+    uint16_t x;
+    uint16_t y;
+} touch_offset_t;
+
+static touch_offset_t scale_offsets[DIGITIZER_CONTACT_COUNT] = {};
+
+void reset_scaling_offset(int i, uint8_t scale)
+{
+    scale_offsets[i].isAdjusted = false;
+    scale_offsets[i].x = (DIGITIZER_RESOLUTION_X - (DIGITIZER_RESOLUTION_X * scale_percentage / 100)) / 2;
+    scale_offsets[i].y = (DIGITIZER_RESOLUTION_Y - (DIGITIZER_RESOLUTION_Y * scale_percentage / 100)) / 2;
+}
 
 void digitizer_set_scale(uint8_t scale) {
+    for (int i = 0; i < DIGITIZER_CONTACT_COUNT; i++)
+    {
+        // When we apply a scaling factor - we
+        if (digitizer_state.contacts[i].tip)
+        {
+            scale_offsets[i].isAdjusted = true;
+            const int old_x = scale_offsets[i].x + (digitizer_state.contacts[i].x * scale_percentage) / 100;
+            const int old_y = scale_offsets[i].y + (digitizer_state.contacts[i].y * scale_percentage) / 100;
+            const int new_x = scale_offsets[i].x + (digitizer_state.contacts[i].x * scale) / 100;
+            const int new_y = scale_offsets[i].y + (digitizer_state.contacts[i].y * scale) / 100;
+            scale_offsets[i].x = old_x - new_x;
+            scale_offsets[i].y = old_y - new_y;
+        }
+        else
+        {
+            reset_scaling_offset(i, scale);
+        }
+    }
     scale_percentage = scale;
-    scale_offset_x = (DIGITIZER_RESOLUTION_X - (DIGITIZER_RESOLUTION_X * scale / 100)) / 2;
-    scale_offset_y = (DIGITIZER_RESOLUTION_Y - (DIGITIZER_RESOLUTION_Y * scale / 100)) / 2;
 }
 
 uint8_t digitizer_get_scale(void) {
@@ -249,9 +278,13 @@ bool digitizer_task(void) {
                     skip_count++;
                     report.fingers[finger_index].tip = false;
                 }
+                if (!tmp_state.contacts[i].tip && scale_offsets[i].isAdjusted)
+                {
+                    reset_scaling_offset(i, scale_percentage);
+                }
                 report.fingers[finger_index].contact_id = i;
-                report.fingers[finger_index].x          = scale_offset_x + (tmp_state.contacts[i].x * scale_percentage) / 100;
-                report.fingers[finger_index].y          = scale_offset_y + (tmp_state.contacts[i].y * scale_percentage) / 100;
+                report.fingers[finger_index].x          = scale_offsets[i].x + (tmp_state.contacts[i].x * scale_percentage) / 100;
+                report.fingers[finger_index].y          = scale_offsets[i].y + (tmp_state.contacts[i].y * scale_percentage) / 100;
                 report.fingers[finger_index].confidence = tmp_state.contacts[i].confidence;
                 report.fingers[finger_index].pressure   = tmp_state.contacts[i].pressure;
             }
