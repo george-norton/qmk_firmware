@@ -289,6 +289,10 @@ bool digitizer_task(void) {
 #ifdef DIGITIZER_REPORT_FINGER_PRESSURE
                 report.fingers[finger_index].pressure   = tmp_state.contacts[i].pressure;
 #endif
+#ifdef DIGITIZER_REPORT_FINGER_SIZE
+                report.fingers[finger_index].width   = tmp_state.contacts[i].width;
+                report.fingers[finger_index].height   = tmp_state.contacts[i].height;
+#endif
             }
 #endif
 #ifdef DIGITIZER_HAS_STYLUS

@@ -407,6 +407,9 @@ void maxtouch_init(void) {
         cfg.cfg1         = rotation;
         cfg.scraux       = 0x7;                                             // AUX data: Report the number of touch events, touch area, anti touch area
         cfg.tchaux       = 0x2;                                             // report amplitude
+#ifdef DIGITIZER_REPORT_FINGER_SIZE
+        cfg.tchaux       |= 0x8;
+#endif
         cfg.tcheventcfg  = 24;                                              // Disable reporting suppressed events
         cfg.numtch       = DIGITIZER_CONTACT_COUNT;                         // The number of touch reports we want to receive (upto 10)
         cfg.xsize        = MXT_MATRIX_X_SIZE;                               // Make configurable as this depends on the sensor design.
@@ -529,6 +532,10 @@ digitizer_t maxtouch_get_report(digitizer_t digitizer_report) {
                     const uint16_t x          = message.data[1] | (message.data[2] << 8);
                     const uint16_t y          = message.data[3] | (message.data[4] << 8);
                     const uint8_t  ampl       = message.data[5];
+#ifdef DIGITIZER_REPORT_FINGER_SIZE
+                    digitizer_report.contacts[contact_id].width = message.data[6];
+                    digitizer_report.contacts[contact_id].height = message.data[7];
+#endif
                     // uprintf("EVT[%u] %d %d %ux%u %u\n", contact_id, event, type, x, y, ampl);
 
                     switch (type) {
