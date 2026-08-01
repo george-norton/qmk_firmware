@@ -36,6 +36,10 @@ typedef struct {
 #ifdef DIGITIZER_REPORT_FINGER_PRESSURE
     uint8_t          pressure;
 #endif
+#ifdef DIGITIZER_REPORT_FINGER_SIZE
+    uint8_t          width;
+    uint8_t          height;
+#endif
     uint16_t         x;
     uint16_t         y;
 } digitizer_contact_t;

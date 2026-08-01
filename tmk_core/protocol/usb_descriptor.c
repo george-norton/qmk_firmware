@@ -382,6 +382,20 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
 #else
 #define DIGITIZER_FINGER_PRESSURE
 #endif
+#ifdef DIGITIZER_REPORT_FINGER_SIZE
+#define DIGITIZER_FINGER_SIZE                                                    \
+            /*  Contact size (16 bits) */                                        \
+            HID_RI_REPORT_COUNT(8, 0x01),                                        \
+            HID_RI_REPORT_SIZE(8, 0x08),                                         \
+            HID_RI_LOGICAL_MAXIMUM(8, 0xFF),                                     \
+            HID_RI_USAGE(8, 0x48),         /*  Contact width */                  \
+            HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE), \
+            HID_RI_USAGE(8, 0x49),         /*  Contact height */                 \
+            HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
+#else
+#define DIGITIZER_FINGER_SIZE
+#endif
+
 #    define DIGITIZER_FINGER_REPORT                                              \
         HID_RI_USAGE_PAGE(8, 0x0D),        /*  Digitizers */                     \
         HID_RI_USAGE(8, 0x22),             /*  Finger */                         \
@@ -410,6 +424,8 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
                                                                                  \
             /*  Optional contact pressure (8 bits) */                            \
             DIGITIZER_FINGER_PRESSURE                                            \
+            /*  Optional contact size (2x8 bits) */                              \
+            DIGITIZER_FINGER_SIZE                                                \
                                                                                  \
             /*  X/Y Position (4 bytes) */                                        \
             HID_RI_USAGE_PAGE(8, 0x01),    /*  Generic Desktop */                \
