@@ -67,6 +67,16 @@ digitizer_t        digitizer_get_state(void) {
     return digitizer_state;
 }
 
+static inline int clamp_report_value(int value, int max) {
+    if (value < 0) {
+        return 0;
+    } else if (value > max) {
+        return max;
+    } else {
+        return value;
+    }
+}
+
 #if defined(SPLIT_DIGITIZER_ENABLE)
 #    if defined(DIGITIZER_LEFT)
 #        define DIGITIZER_THIS_SIDE is_keyboard_left()
@@ -163,8 +173,8 @@ static uint8_t scale_percentage = 100;
 
 typedef struct {
     bool isAdjusted;
-    uint16_t x;
-    uint16_t y;
+    int x;
+    int y;
 } touch_offset_t;
 
 static touch_offset_t scale_offsets[DIGITIZER_CONTACT_COUNT] = {};
@@ -185,8 +195,8 @@ void digitizer_set_scale(uint8_t scale) {
             scale_offsets[i].isAdjusted = true;
             const int old_x = scale_offsets[i].x + (digitizer_state.contacts[i].x * scale_percentage) / 100;
             const int old_y = scale_offsets[i].y + (digitizer_state.contacts[i].y * scale_percentage) / 100;
-            const int new_x = scale_offsets[i].x + (digitizer_state.contacts[i].x * scale) / 100;
-            const int new_y = scale_offsets[i].y + (digitizer_state.contacts[i].y * scale) / 100;
+            const int new_x = (digitizer_state.contacts[i].x * scale) / 100;
+            const int new_y = (digitizer_state.contacts[i].y * scale) / 100;
             scale_offsets[i].x = old_x - new_x;
             scale_offsets[i].y = old_y - new_y;
         }
@@ -283,8 +293,8 @@ bool digitizer_task(void) {
                     reset_scaling_offset(i, scale_percentage);
                 }
                 report.fingers[finger_index].contact_id = i;
-                report.fingers[finger_index].x          = scale_offsets[i].x + (tmp_state.contacts[i].x * scale_percentage) / 100;
-                report.fingers[finger_index].y          = scale_offsets[i].y + (tmp_state.contacts[i].y * scale_percentage) / 100;
+                report.fingers[finger_index].x          = clamp_report_value(scale_offsets[i].x + (tmp_state.contacts[i].x * scale_percentage) / 100, DIGITIZER_RESOLUTION_X);
+                report.fingers[finger_index].y          = clamp_report_value(scale_offsets[i].y + (tmp_state.contacts[i].y * scale_percentage) / 100, DIGITIZER_RESOLUTION_Y);
                 report.fingers[finger_index].confidence = tmp_state.contacts[i].confidence;
 #ifdef DIGITIZER_REPORT_FINGER_PRESSURE
                 report.fingers[finger_index].pressure   = tmp_state.contacts[i].pressure;
