@@ -182,8 +182,8 @@ static touch_offset_t scale_offsets[DIGITIZER_CONTACT_COUNT] = {};
 void reset_scaling_offset(int i, uint8_t scale)
 {
     scale_offsets[i].isAdjusted = false;
-    scale_offsets[i].x = (DIGITIZER_RESOLUTION_X - (DIGITIZER_RESOLUTION_X * scale_percentage / 100)) / 2;
-    scale_offsets[i].y = (DIGITIZER_RESOLUTION_Y - (DIGITIZER_RESOLUTION_Y * scale_percentage / 100)) / 2;
+    scale_offsets[i].x = (DIGITIZER_RESOLUTION_X - (DIGITIZER_RESOLUTION_X * scale / 100)) / 2;
+    scale_offsets[i].y = (DIGITIZER_RESOLUTION_Y - (DIGITIZER_RESOLUTION_Y * scale / 100)) / 2;
 }
 
 void digitizer_set_scale(uint8_t scale) {
