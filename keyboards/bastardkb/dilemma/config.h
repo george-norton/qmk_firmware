@@ -41,3 +41,6 @@
 #define CIRQUE_PINNACLE_DIAMETER_MM 35
 #define CIRQUE_PINNACLE_CURVED_OVERLAY
 #define POINTING_DEVICE_GESTURES_SCROLL_ENABLE // Circular scroll.
+
+// Managed by Argos, disabled by default
+#define POINTING_DEVICE_AUTO_MOUSE_ENABLE

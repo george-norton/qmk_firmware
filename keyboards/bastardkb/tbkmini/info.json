@@ -1,6 +1,7 @@
 {
     "keyboard_name": "TBK Mini Splinky",
     "url": "https://www.bastardkb.com/tbk-mini",
+    "manufacturer": "Bastard Keyboards",
     "usb": {
         "device_version": "2.0.0",
         "pid": "0x1828"
@@ -60,17 +61,11 @@
             "val": 64
         }
     },
-    "matrix_pins": {
-        "cols": ["GP27", "GP28", "GP21", "GP6", "GP7", "GP8"],
-        "rows": ["GP26", "GP5", "GP4", "GP9"]
-    },
-    "diode_direction": "ROW2COL",
     "rgblight": {
         "led_count": 42,
         "split_count": [21, 21]
     },
     "split": {
-        "soft_serial_pin": "GP1",
         "transport": {
             "sync": {
                 "matrix_state": true
@@ -85,10 +80,6 @@
         "mousekey": true,
         "extrakey": true,
         "rgb_matrix": true
-    },
-    "ws2812": {
-        "pin": "GP0",
-        "driver": "vendor"
     },
     "processor": "RP2040",
     "bootloader": "rp2040",
