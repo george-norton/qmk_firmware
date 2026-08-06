@@ -1,11 +1,9 @@
 {
     "keyboard_name": "Charybdis Nano (3x5) Splinky",
-    "manufacturer": "Bastard Keyboards",
     "url": "https://bastardkb.com/charybdis-nano",
     "usb": {
         "device_version": "2.0.0",
-        "pid": "0x1832",
-        "vid": "0xA8F8"
+        "pid": "0x1832"
     },
     "rgb_matrix": {
         "driver": "ws2812",

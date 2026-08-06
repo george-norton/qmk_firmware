@@ -31,3 +31,6 @@
 
 // Invert X axis on mouse reports.
 #define POINTING_DEVICE_INVERT_X
+
+// Managed by Argos, disabled by default
+#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
