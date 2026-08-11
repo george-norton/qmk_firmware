@@ -172,15 +172,16 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
     int             contacts           = 0;
 
 #if defined(DIGITIZER_REPORT_FINGER_PRESSURE) || defined(DIGITIZER_REPORT_FINGER_SIZE)
-    // Buffer ovement while the contact is shrinking so it can be
+    // Buffer movement while the contact is shrinking so it can be
     // dropped if we are lifting off.
-    int             strength           = 0;
+    int16_t         strength           = 0;
     static bool     buffering          = false;
     static int      buffered_x         = 0;
     static int      buffered_y         = 0;
-    static int      strength_buffer    = 0;
-    static uint8_t  strength_counter   = 0;
-    static int      average_strength   = 0;
+    #define STRENGTH_BUFFER_SIZE 8
+    static int16_t  strength_buffer[STRENGTH_BUFFER_SIZE] = {};
+    static uint8_t  strength_buffer_index = 0;
+    static uint8_t  strength_buffer_size  = 0;
 #endif
 
     memset(&mouse_report, 0, sizeof(report_mouse_t));
@@ -229,40 +230,43 @@ void digitizer_update_mouse_report(report_digitizer_t *report) {
         case Drag:
         case MoveScroll: {
             if (contacts == 0) {
+#if defined(DIGITIZER_REPORT_FINGER_PRESSURE) || defined(DIGITIZER_REPORT_FINGER_SIZE)
+                buffered_x = 0;
+                buffered_y = 0;
+                buffering = false;
+                strength_buffer_index = 0;
+                strength_buffer_size = 0;
+#endif
                 state = None;
             } else if (contacts == 1) {
 #if defined(DIGITIZER_REPORT_FINGER_PRESSURE) || defined(DIGITIZER_REPORT_FINGER_SIZE)
-                // Reset our liftoff detection state if the number of contacts changed
-                if (contacts != last_contacts)
+                // Ignore events with no movement
+                if ((x - last_x) == 0 && (y - last_y) == 0)
                 {
-                    buffered_x = 0;
-                    buffered_y = 0;
-                    buffering = false;
-                    strength_buffer    = 0;
-                    strength_counter   = 0;
-                    average_strength   = 0; 
+                    break;
+                }
+                strength_buffer[strength_buffer_index] = strength;
+                strength_buffer_index = (strength_buffer_index + 1) % STRENGTH_BUFFER_SIZE;
+                if (strength_buffer_size < STRENGTH_BUFFER_SIZE) {
+                    strength_buffer_size ++;
                 }
 
+                uint16_t average_strength = 0;
+                for (uint8_t i=0; i<strength_buffer_size; i++) {
+                    average_strength += strength_buffer[i];
+                }
+                average_strength = average_strength / strength_buffer_size;
+
                 // A 10% drop in strength is more than just noise, treat it as a potental lift off.
-                if (average_strength)
+                if (strength * 10 < average_strength * 9)
                 {
-                    if (strength * 10 < average_strength * 9)
-                    {
-                        buffering = true;
-                    }
-                    if (strength >= average_strength)
-                    {
-                        buffering = false;
-                    }
+                    buffering = true;
                 }
-                strength_buffer += strength;
-                strength_counter ++;
-                if ((!buffering && strength_counter > 5) || strength_counter > 16)
+                if (strength >= average_strength)
                 {
-                    average_strength = strength_buffer / strength_counter;
-                    strength_buffer = 0;
-                    strength_counter = 0;
+                    buffering = false;
                 }
+
                 if (buffering)
                 {
                     buffered_x += (x - last_x);
